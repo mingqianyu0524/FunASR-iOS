@@ -1,0 +1,11 @@
+*.xcworkspacedata
+*.flac
+*.wav
+*.bin
+*.onnx
+**/test_data
+WhisperIOSTests/
+WhisperIOSUITests/
+WhisperIOS.xcodeproj/
+Frameworks/
+**/onnxruntime.xcframework/
