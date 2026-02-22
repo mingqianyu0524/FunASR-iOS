@@ -1,4 +1,4 @@
-# WhisperIOS
+# SenseVoiceIOS
 
 An iOS speech recognition application featuring two state-of-the-art ASR (Automatic Speech Recognition) engines running on-device with Apple Neural Engine acceleration.
 
