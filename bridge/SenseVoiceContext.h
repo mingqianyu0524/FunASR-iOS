@@ -9,6 +9,7 @@
 #define SenseVoiceContext_h
 
 #import <Foundation/Foundation.h>
+#import "ASRBridgeResult.h"
 
 @interface SenseVoiceContext : NSObject
 
@@ -16,6 +17,9 @@
 
 /// Transcribe audio from raw float PCM data passed as NSData (zero-copy from Swift)
 - (NSString *)transcribeData:(NSData *)pcmData;
+
+/// Transcribe with metrics collection
+- (ASRBridgeResult *)transcribeDataWithMetrics:(NSData *)pcmData;
 
 @end
 

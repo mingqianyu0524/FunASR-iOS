@@ -11,14 +11,21 @@ import AVFoundation
 class AudioRecorder: NSObject, ObservableObject {
     @Published var isRecording = false
     @Published var recordingData: [Float] = [] // Stores the accumulated 16kHz PCM data
-    
+
+    // Streaming chunk callback: called when enough samples accumulate
+    var onChunkReady: (([Float]) -> Void)?
+
     // Audio Engine Components
     private let audioEngine = AVAudioEngine()
     private var inputNode: AVAudioInputNode?
     private var converter: AVAudioConverter?
-    
+
     // Whisper requires 16kHz
     private let targetSampleRate: Double = 16000.0
+
+    // Streaming: accumulate samples and fire callback every streamChunkSize samples (300ms @ 16kHz)
+    private let streamChunkSize: Int = 4800
+    private var streamBuffer: [Float] = []
     
     func requestPermission() {
         if #available(iOS 17.0, *) {
@@ -58,6 +65,7 @@ class AudioRecorder: NSObject, ObservableObject {
         
         // 2. Clear previous data
         recordingData.removeAll()
+        streamBuffer.removeAll()
         
         // 3. Setup Audio Engine
         inputNode = audioEngine.inputNode
@@ -103,13 +111,26 @@ class AudioRecorder: NSObject, ObservableObject {
             if let channelData = outputBuffer.floatChannelData {
                 let channelPointer = channelData[0] // Mono, so we take channel 0
                 let frameLength = Int(outputBuffer.frameLength)
-                
+
                 // Swift array from C pointer
                 let samples = Array(UnsafeBufferPointer(start: channelPointer, count: frameLength))
-                
-                // Append to main array (Thread safe UI update not strictly needed here for data, but good practice)
+
+                // Append to main array
                 DispatchQueue.main.async {
                     self.recordingData.append(contentsOf: samples)
+                }
+
+                // Streaming chunk accumulation
+                if self.onChunkReady != nil {
+                    self.streamBuffer.append(contentsOf: samples)
+                    while self.streamBuffer.count >= self.streamChunkSize {
+                        let chunk = Array(self.streamBuffer.prefix(self.streamChunkSize))
+                        self.streamBuffer.removeFirst(self.streamChunkSize)
+                        let callback = self.onChunkReady
+                        DispatchQueue.global(qos: .userInitiated).async {
+                            callback?(chunk)
+                        }
+                    }
                 }
             }
         }
@@ -127,10 +148,11 @@ class AudioRecorder: NSObject, ObservableObject {
     func stopRecording() {
         audioEngine.stop()
         inputNode?.removeTap(onBus: 0) // Remove the interceptor
-        
+        streamBuffer.removeAll()
+
         DispatchQueue.main.async {
             self.isRecording = false
         }
-        print("🛑 Recording stopped. Captured \(recordingData.count) samples.")
+        print("Recording stopped. Captured \(recordingData.count) samples.")
     }
 }

@@ -14,7 +14,8 @@
 
 - (instancetype)initWithModelPath:(NSString *)modelPath;
 
-- (NSString *)transcribe:(NSArray<NSNumber *> *)pcmData;
+/// Transcribe audio from raw float PCM data passed as NSData (zero-copy from Swift)
+- (NSString *)transcribeData:(NSData *)pcmData;
 
 @end
 

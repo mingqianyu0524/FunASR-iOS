@@ -258,30 +258,50 @@ std::string SenseVoiceEngine::ctc_greedy_decode(const float* logits,
 }
 
 // =====================================================================
-// Transcribe: full pipeline
-//   PCM → fbank → LFR → CMVN → ONNX forward → CTC decode
+// Transcribe: full pipeline (no metrics)
 // =====================================================================
 std::string SenseVoiceEngine::transcribe(const std::vector<float>& pcm_data)
+{
+    InferenceMetrics unused;
+    return transcribe(pcm_data, unused);
+}
+
+// =====================================================================
+// Transcribe: full pipeline with metrics instrumentation
+//   PCM → fbank → LFR → CMVN → ONNX forward → CTC decode
+// =====================================================================
+std::string SenseVoiceEngine::transcribe(const std::vector<float>& pcm_data,
+                                          InferenceMetrics& metrics)
 {
     if (!session_) {
         return "Error: Model not loaded";
     }
 
     try {
+        uint64_t t_total_start = mach_absolute_time();
+        metrics.memory_bytes_before = get_rss_bytes();
+        metrics.audio_duration_ms = static_cast<double>(pcm_data.size()) / 16000.0 * 1000.0;
+
         std::cout << "🧠 SenseVoice transcribe: " << pcm_data.size() << " samples" << std::endl;
 
         // 1. Feature extraction: PCM → [n_frames, 80] log-fbank
+        uint64_t t0 = mach_absolute_time();
         int n_fbank_frames = 0;
         std::vector<float> fbank = feature_extractor_.process(pcm_data, n_fbank_frames);
+        uint64_t t1 = mach_absolute_time();
+        metrics.fbank_time_ms = mach_time_to_ms(t0, t1);
         std::cout << "  Fbank: " << n_fbank_frames << " x 80" << std::endl;
 
-        // 2. LFR: [n_frames, 80] → [n_lfr_frames, 560]
+        // 2. LFR + CMVN
+        uint64_t t2 = mach_absolute_time();
         int n_lfr_frames = 0;
         std::vector<float> lfr_features = apply_lfr(fbank, n_fbank_frames, 80, n_lfr_frames);
         std::cout << "  LFR: " << n_lfr_frames << " x 560" << std::endl;
 
         // 3. CMVN normalization (in-place)
         apply_cmvn(lfr_features, n_lfr_frames, 560);
+        uint64_t t3 = mach_absolute_time();
+        metrics.lfr_cmvn_time_ms = mach_time_to_ms(t2, t3);
 
         // 4. Prepare ONNX inputs
         Ort::AllocatorWithDefaultOptions allocator;
@@ -328,10 +348,13 @@ std::string SenseVoiceEngine::transcribe(const std::vector<float>& pcm_data)
 
         // 5. Run inference (single forward pass!)
         std::cout << "  Running ONNX inference..." << std::endl;
+        uint64_t t4 = mach_absolute_time();
         auto outputs = session_->Run(
             Ort::RunOptions{nullptr},
             input_names, input_tensors.data(), 4,
             output_names, 1);
+        uint64_t t5 = mach_absolute_time();
+        metrics.onnx_forward_time_ms = mach_time_to_ms(t4, t5);
 
         // 6. Read output logits [1, T_out, vocab_size]
         auto& logits_tensor = outputs[0];
@@ -345,8 +368,20 @@ std::string SenseVoiceEngine::transcribe(const std::vector<float>& pcm_data)
         const float* logits_data = logits_tensor.GetTensorData<float>();
 
         // 7. CTC greedy decode
+        uint64_t t6 = mach_absolute_time();
         std::string result = ctc_greedy_decode(logits_data, T_out, V);
+        uint64_t t7 = mach_absolute_time();
+        metrics.decode_time_ms = mach_time_to_ms(t6, t7);
+
+        metrics.memory_bytes_after = get_rss_bytes();
+        metrics.total_inference_ms = mach_time_to_ms(t_total_start, t7);
+        metrics.rtf = (metrics.audio_duration_ms > 0)
+            ? metrics.total_inference_ms / metrics.audio_duration_ms : 0.0;
+
         std::cout << "  Result: " << result << std::endl;
+        std::cout << "  Metrics: total=" << metrics.total_inference_ms
+                  << "ms onnx=" << metrics.onnx_forward_time_ms
+                  << "ms rtf=" << metrics.rtf << std::endl;
 
         return result;
 

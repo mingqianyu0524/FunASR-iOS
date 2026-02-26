@@ -6,6 +6,7 @@
 #include "onnxruntime/onnxruntime_cxx_api.h"
 #include "sensevoice_tokenizer.h"
 #include "feature_extractor.h"
+#include "inference_metrics.h"
 
 class SenseVoiceEngine {
 public:
@@ -27,6 +28,7 @@ public:
      * @return Recognized text string
      */
     std::string transcribe(const std::vector<float>& pcm_data);
+    std::string transcribe(const std::vector<float>& pcm_data, InferenceMetrics& metrics);
 
 private:
     // ONNX Runtime

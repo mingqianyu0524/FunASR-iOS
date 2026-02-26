@@ -3,33 +3,47 @@
 #include <cstdint>
 #include <Accelerate/Accelerate.h>
 
+/**
+ * FeatureExtractor — Kaldi-compatible Fbank extraction for SenseVoice
+ *
+ * Pipeline:  16 kHz PCM → framing (25 ms Hamming, 10 ms hop)
+ *            → DFT (N=512) → power spectrum → mel filterbank (80 bins)
+ *            → log
+ *
+ * LFR and CMVN are applied downstream in SenseVoiceEngine.
+ */
 class FeatureExtractor {
 public:
     FeatureExtractor();
     ~FeatureExtractor();
 
     /**
-     * @brief 处理音频数据，生成 Log-Mel Spectrogram
-     * * @param pcm_audio 原始音频数据 (必须是 16kHz, 单声道, 已归一化到 -1~1)
-     * @return std::vector<float> 扁平化的 Mel 谱图 (大小: 1 * 80 * 3000)
+     * @brief Extract 80-dim log-Fbank features (variable length)
+     * @param pcm_audio  16 kHz mono float audio in [-1, 1]
+     * @param out_n_frames  [out] number of frames produced
+     * @return Flat vector of size (out_n_frames * 80), row-major [T, 80]
      */
-    std::vector<float> process(const std::vector<float> &pcm_audio);
+    std::vector<float> process(const std::vector<float>& pcm_audio,
+                               int& out_n_frames);
+
 private:
-    // --- 核心常量 (Whisper Tiny/Base 配置) ---
-    static constexpr int N_FFT = 400;
-    static constexpr int HOP_LENGTH = 160;
+    // --- Core constants (Kaldi fbank compatible) ---
+    static constexpr int N_FFT = 512;          // next power-of-2 ≥ 400
+    static constexpr int FRAME_LENGTH = 400;   // 25 ms at 16 kHz
+    static constexpr int HOP_LENGTH = 160;     // 10 ms at 16 kHz
     static constexpr int N_MELS = 80;
     static constexpr int SAMPLE_RATE = 16000;
 
-    // --- 预计算数据 (Cache) ---
-    std::vector<float> hann_window_; // 汉宁窗 (大小: 400)
-    std::vector<float> mel_filters_; // Mel 滤波器组矩阵 (大小: 80 * 201)
+    // --- Precomputed data ---
+    std::vector<float> hamming_window_;  // size: FRAME_LENGTH (400)
+    std::vector<float> mel_filters_;     // size: N_MELS * (N_FFT/2+1) = 80 * 257
 
-    // --- vDSP 句柄 ---
-    // 专门用于加速 DFT/FFT 的设置结构体
-    vDSP_DFT_Setup dft_setup_ = nullptr;
+    // --- DFT matrices (257 x 512) for matrix-based DFT ---
+    std::vector<float> dft_mat_real_;
+    std::vector<float> dft_mat_imag_;
 
-    // --- 初始化辅助函数 ---
-    void init_hann_window();
+    // --- Init helpers ---
+    void init_hamming_window();
     void init_mel_filters();
+    void init_dft_matrices();
 };
