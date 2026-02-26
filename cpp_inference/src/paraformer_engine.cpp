@@ -98,6 +98,14 @@ bool ParaformerEngine::load_cmvn(const std::string& mvn_path) {
         }
     }
 
+    // Kaldi am.mvn may have an extra trailing count/bias value per row — truncate
+    if ((int)cmvn_neg_mean_.size() == LFR_FEAT_DIM + 1) {
+        cmvn_neg_mean_.pop_back();
+    }
+    if ((int)cmvn_istd_.size() == LFR_FEAT_DIM + 1) {
+        cmvn_istd_.pop_back();
+    }
+
     if ((int)cmvn_neg_mean_.size() != LFR_FEAT_DIM ||
         (int)cmvn_istd_.size() != LFR_FEAT_DIM) {
         std::cerr << "CMVN dimension mismatch: neg_mean=" << cmvn_neg_mean_.size()
@@ -106,7 +114,7 @@ bool ParaformerEngine::load_cmvn(const std::string& mvn_path) {
         return false;
     }
 
-    std::cout << "  CMVN loaded (560-dim) from " << mvn_path << std::endl;
+    std::cout << "  CMVN loaded (" << LFR_FEAT_DIM << "-dim) from " << mvn_path << std::endl;
     return true;
 }
 
