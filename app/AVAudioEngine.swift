@@ -1,6 +1,6 @@
 //
 //  AVAudioEngine.swift
-//  WhisperIOS
+//  FunASR-iOS
 //
 //  Created by Mingqian Yu on 1/14/26.
 //

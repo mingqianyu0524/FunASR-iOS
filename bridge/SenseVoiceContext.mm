@@ -1,6 +1,6 @@
 //
 //  SenseVoiceContext.mm
-//  WhisperIOS
+//  FunASR-iOS
 //
 //  Obj-C++ bridge for SenseVoiceEngine
 //

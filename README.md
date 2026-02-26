@@ -1,4 +1,4 @@
-# SenseVoiceIOS
+# FunASR-iOS
 
 An iOS speech recognition application featuring two state-of-the-art ASR (Automatic Speech Recognition) engines running on-device with Apple Neural Engine acceleration.
 
@@ -13,7 +13,7 @@ An iOS speech recognition application featuring two state-of-the-art ASR (Automa
 
 ## Architecture
 
-WhisperIOS uses a three-layer architecture with strict separation of concerns:
+FunASR-iOS uses a three-layer architecture with strict separation of concerns:
 
 ```
 ┌─────────────────────────────────────────┐
@@ -66,7 +66,7 @@ Microphone (48kHz)
 
 ### Using Xcode (Recommended)
 
-1. Open `WhisperIOS.xcodeproj` in Xcode
+1. Open `FunASR-iOS.xcodeproj` in Xcode
 2. Select target device or simulator
 3. Build and run (⌘R)
 
@@ -74,27 +74,27 @@ Microphone (48kHz)
 
 ```bash
 # Build for device
-xcodebuild -project WhisperIOS.xcodeproj \
-  -scheme WhisperIOS \
+xcodebuild -project FunASR-iOS.xcodeproj \
+  -scheme FunASR-iOS \
   -configuration Debug \
   -destination 'platform=iOS,name=<your-device-name>'
 
 # Build for simulator
-xcodebuild -project WhisperIOS.xcodeproj \
-  -scheme WhisperIOS \
+xcodebuild -project FunASR-iOS.xcodeproj \
+  -scheme FunASR-iOS \
   -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 15'
 
 # Run tests
-xcodebuild test -project WhisperIOS.xcodeproj \
-  -scheme WhisperIOS \
+xcodebuild test -project FunASR-iOS.xcodeproj \
+  -scheme FunASR-iOS \
   -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 
 ### Standalone C++ Build (Testing Only)
 
 ```bash
-cd WhisperIOS/cpp_inference
+cd FunASR-iOS/cpp_inference
 cmake -B build
 cmake --build build
 ```
@@ -102,9 +102,9 @@ cmake --build build
 ## Project Structure
 
 ```
-WhisperIOS/
+FunASR-iOS/
 ├── app/                          # Swift UI layer
-│   ├── WhisperIOSApp.swift      # App entry point
+│   ├── FunASR_iOSApp.swift      # App entry point
 │   ├── ContentView.swift        # Main UI (recording/transcription)
 │   ├── AVAudioEngine.swift      # Audio recording (16kHz PCM)
 │   └── WaveformView.swift       # Real-time waveform visualization

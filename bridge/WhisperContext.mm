@@ -1,6 +1,6 @@
 //
 //  WhisperContext.mm
-//  WhisperIOS
+//  FunASR-iOS
 //
 //  Created by Mingqian Yu on 1/13/26.
 //

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-WhisperIOS is an iOS speech recognition app with multiple ASR engines:
+FunASR-iOS is an iOS speech recognition app with multiple ASR engines:
 - **SenseVoice** (active) — non-autoregressive encoder-only model, CTC greedy decoding
 - **Paraformer** (planned) — non-autoregressive, CIF predictor + parallel decoder, supports native streaming
 - **Whisper** (legacy) — autoregressive encoder-decoder model
@@ -15,19 +15,19 @@ Inference runs via ONNX Runtime with CoreML execution provider (Apple Neural Eng
 
 ```bash
 # Build for device
-xcodebuild -project WhisperIOS.xcodeproj -scheme WhisperIOS -configuration Debug \
+xcodebuild -project FunASR-iOS.xcodeproj -scheme FunASR-iOS -configuration Debug \
   -destination 'platform=iOS,name=<device_name>'
 
 # Build for simulator
-xcodebuild -project WhisperIOS.xcodeproj -scheme WhisperIOS -configuration Debug \
+xcodebuild -project FunASR-iOS.xcodeproj -scheme FunASR-iOS -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 15'
 
 # Run tests
-xcodebuild test -project WhisperIOS.xcodeproj -scheme WhisperIOS \
+xcodebuild test -project FunASR-iOS.xcodeproj -scheme FunASR-iOS \
   -destination 'platform=iOS Simulator,name=iPhone 15'
 
 # Standalone C++ build (for testing inference outside Xcode)
-cd WhisperIOS/cpp_inference && cmake -B build && cmake --build build
+cd FunASR-iOS/cpp_inference && cmake -B build && cmake --build build
 ```
 
 Deployment targets: iOS 18.5 / macOS 15.4. C++ standard: GNU++20. Swift version: 5.0.
@@ -40,24 +40,24 @@ Three-layer architecture with strict separation:
 Swift UI (SwiftUI)  →  Obj-C++ Bridge (.mm)  →  C++ Inference Engine
 ```
 
-### Swift UI Layer (`WhisperIOS/app/`)
+### Swift UI Layer (`FunASR-iOS/app/`)
 - `ContentView.swift` — main recording/transcription UI
 - `AVAudioEngine.swift` — `AudioRecorder` class, captures mic at 16kHz mono PCM
 - `WaveformView.swift` — real-time waveform visualization
 
-### Bridge Layer (`WhisperIOS/bridge/`)
+### Bridge Layer (`FunASR-iOS/bridge/`)
 - `SenseVoiceContext.mm` — active bridge, converts Swift types ↔ C++ types
 - `WhisperContext.mm` — legacy Whisper bridge
 - Zero-copy data transfer: Swift `[Float]` → `NSData` → `const float*`
 
-### C++ Inference Engine (`WhisperIOS/cpp_inference/`)
+### C++ Inference Engine (`FunASR-iOS/cpp_inference/`)
 - `sensevoice_engine.cpp` — single-pass inference, CTC decode, CMVN from model metadata
 - `whisper_engine.cpp` — autoregressive encoder-decoder with beam search
 - `feature_extractor.cpp` — Kaldi-compatible 80-dim log-mel filterbank (25ms frame, 10ms hop, 512-pt FFT). Uses Apple Accelerate (vDSP) for Hamming window and matrix ops
 - `sensevoice_tokenizer.h` — SentencePiece tokenizer (vocab in `tokens.txt`)
 - `whisper_tokenizer.cpp` — Whisper tokenizer (vocab in `vocab.json`, uses nlohmann/json)
 
-### Models (`WhisperIOS/cpp_inference/models/`)
+### Models (`FunASR-iOS/cpp_inference/models/`)
 All `.onnx` and `.bin` files are gitignored. Key models:
 - `model.int8.onnx` (228 MB) — SenseVoice INT8 quantized
 - `encoder.onnx` / `decoder.onnx` — Whisper FP32
