@@ -1,0 +1,888 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5F1686B22F17CA4400F0C341 /* AVAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F1686B12F17CA4400F0C341 /* AVAudioEngine.swift */; };
+		5F1686B42F17D05000F0C341 /* WaveformView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F1686B32F17D05000F0C341 /* WaveformView.swift */; };
+		5F1686BB2F17D65700F0C341 /* onnxruntime.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F2A5F772F155D7800CACF0D /* onnxruntime.xcframework */; };
+		5F1686BC2F17D65700F0C341 /* onnxruntime.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5F2A5F772F155D7800CACF0D /* onnxruntime.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5F2A5F7A2F155D8A00CACF0D /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F2A5F792F155D8A00CACF0D /* Accelerate.framework */; };
+		5F2A60082F16AEF700CACF0D /* audio_loader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F2A5FF62F16AEF700CACF0D /* audio_loader.cpp */; };
+		5F2A600A2F16AEF700CACF0D /* FunASR_iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2A60052F16AEF700CACF0D /* FunASR_iOSApp.swift */; };
+		5F2A600B2F16AEF700CACF0D /* feature_extractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F2A5FF72F16AEF700CACF0D /* feature_extractor.cpp */; };
+		5F2A600C2F16AEF700CACF0D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2A60032F16AEF700CACF0D /* ContentView.swift */; };
+		5F2A600E2F16AEF700CACF0D /* main_inference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F2A5FF82F16AEF700CACF0D /* main_inference.cpp */; };
+		5F2A601A2F16AEF700CACF0D /* onnxruntime.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F2A5FEE2F16AEF700CACF0D /* onnxruntime.xcframework */; };
+		5FAA00012F4E000100AA0001 /* sensevoice_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5FAA00052F4E000100AA0001 /* sensevoice_engine.cpp */; };
+		5FAA00022F4E000100AA0001 /* SenseVoiceContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5FAA00082F4E000100AA0001 /* SenseVoiceContext.mm */; };
+		5FAA00032F4E000100AA0001 /* model.int8.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 5FAA000A2F4E000100AA0001 /* model.int8.onnx */; };
+		5FAA00042F4E000100AA0001 /* tokens.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5FAA000B2F4E000100AA0001 /* tokens.txt */; };
+		5FD46CBA2F1B840700DC4766 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FD46CB92F1B840700DC4766 /* CoreML.framework */; };
+		5FD46CD52F1BC5DD00DC4766 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5F2A60022F16AEF700CACF0D /* Assets.xcassets */; };
+		AABB00020000000000000001 /* ASREngineProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000001 /* ASREngineProtocol.swift */; };
+		AABB00020000000000000002 /* ASREngineFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000002 /* ASREngineFactory.swift */; };
+		AABB00020000000000000003 /* SenseVoiceASREngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000003 /* SenseVoiceASREngine.swift */; };
+		AABB00020000000000000004 /* ParaformerASREngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000004 /* ParaformerASREngine.swift */; };
+		AABB00020000000000000005 /* ASRSessionMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000005 /* ASRSessionMetrics.swift */; };
+		AABB00020000000000000006 /* MetricsOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000006 /* MetricsOverlayView.swift */; };
+		AABB00020000000000000008 /* ASRBridgeResult.mm in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000008 /* ASRBridgeResult.mm */; };
+		AABB0002000000000000000A /* ParaformerContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = AABB0001000000000000000A /* ParaformerContext.mm */; };
+		AABB0002000000000000000D /* paraformer_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AABB0001000000000000000D /* paraformer_engine.cpp */; };
+		AABB0002000000000000000E /* paraformer_encoder.int8.onnx in Resources */ = {isa = PBXBuildFile; fileRef = AABB0001000000000000000E /* paraformer_encoder.int8.onnx */; };
+		AABB0002000000000000000F /* paraformer_decoder.int8.onnx in Resources */ = {isa = PBXBuildFile; fileRef = AABB0001000000000000000F /* paraformer_decoder.int8.onnx */; };
+		AABB00020000000000000010 /* am.mvn in Resources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000010 /* am.mvn */; };
+		AABB00020000000000000011 /* paraformer_tokens.json in Resources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000011 /* paraformer_tokens.json */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5F2A5EB82F15556200CACF0D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2A5EA12F15556000CACF0D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5F2A5EA82F15556000CACF0D;
+			remoteInfo = "FunASR-iOS";
+		};
+		5F2A5EC22F15556200CACF0D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2A5EA12F15556000CACF0D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5F2A5EA82F15556000CACF0D;
+			remoteInfo = "FunASR-iOS";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5F2A5F722F155B1A00CACF0D /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				5F1686BC2F17D65700F0C341 /* onnxruntime.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		5F1686B12F17CA4400F0C341 /* AVAudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVAudioEngine.swift; sourceTree = "<group>"; };
+		5F1686B32F17D05000F0C341 /* WaveformView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveformView.swift; sourceTree = "<group>"; };
+		5F2A5EA92F15556000CACF0D /* FunASR-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FunASR-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F2A5EB72F15556200CACF0D /* FunASR-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FunASR-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F2A5EC12F15556200CACF0D /* FunASR-iOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FunASR-iOSUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F2A5F772F155D7800CACF0D /* onnxruntime.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = onnxruntime.xcframework; path = "FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework"; sourceTree = SOURCE_ROOT; };
+		5F2A5F792F155D8A00CACF0D /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/System/Library/Frameworks/Accelerate.framework; sourceTree = DEVELOPER_DIR; };
+		5F2A5FDC2F16AEF700CACF0D /* FunASR-iOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FunASR-iOS-Bridging-Header.h"; sourceTree = "<group>"; };
+		5F2A5FDE2F16AEF700CACF0D /* json.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = json.hpp; sourceTree = "<group>"; };
+		5F2A5FE02F16AEF700CACF0D /* audio_loader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = audio_loader.h; sourceTree = "<group>"; };
+		5F2A5FE12F16AEF700CACF0D /* dr_wav.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dr_wav.h; sourceTree = "<group>"; };
+		5F2A5FE22F16AEF700CACF0D /* feature_extractor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = feature_extractor.h; sourceTree = "<group>"; };
+		5F2A5FE62F16AEF700CACF0D /* coreml_provider_factory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = coreml_provider_factory.h; sourceTree = "<group>"; };
+		5F2A5FE72F16AEF700CACF0D /* cpu_provider_factory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cpu_provider_factory.h; sourceTree = "<group>"; };
+		5F2A5FE82F16AEF700CACF0D /* onnxruntime_c_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = onnxruntime_c_api.h; sourceTree = "<group>"; };
+		5F2A5FE92F16AEF700CACF0D /* onnxruntime_cxx_api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = onnxruntime_cxx_api.h; sourceTree = "<group>"; };
+		5F2A5FEA2F16AEF700CACF0D /* onnxruntime_cxx_inline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = onnxruntime_cxx_inline.h; sourceTree = "<group>"; };
+		5F2A5FEB2F16AEF700CACF0D /* onnxruntime_float16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = onnxruntime_float16.h; sourceTree = "<group>"; };
+		5F2A5FED2F16AEF700CACF0D /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		5F2A5FEE2F16AEF700CACF0D /* onnxruntime.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = onnxruntime.xcframework; sourceTree = "<group>"; };
+		5F2A5FF62F16AEF700CACF0D /* audio_loader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = audio_loader.cpp; sourceTree = "<group>"; };
+		5F2A5FF72F16AEF700CACF0D /* feature_extractor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = feature_extractor.cpp; sourceTree = "<group>"; };
+		5F2A5FF82F16AEF700CACF0D /* main_inference.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main_inference.cpp; sourceTree = "<group>"; };
+		5F2A5FFC2F16AEF700CACF0D /* 2412-153947-0000.flac */ = {isa = PBXFileReference; lastKnownFileType = text; path = "2412-153947-0000.flac"; sourceTree = "<group>"; };
+		5F2A5FFD2F16AEF700CACF0D /* input_16k.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = input_16k.wav; sourceTree = "<group>"; };
+		5F2A5FFE2F16AEF700CACF0D /* test_mel_input.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = test_mel_input.bin; sourceTree = "<group>"; };
+		5F2A60002F16AEF700CACF0D /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		5F2A60022F16AEF700CACF0D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5F2A60032F16AEF700CACF0D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		5F2A60042F16AEF700CACF0D /* FunASR-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "FunASR-iOS.entitlements"; sourceTree = "<group>"; };
+		5F2A60052F16AEF700CACF0D /* FunASR_iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FunASR_iOSApp.swift; sourceTree = "<group>"; };
+		5FAA00052F4E000100AA0001 /* sensevoice_engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sensevoice_engine.cpp; sourceTree = "<group>"; };
+		5FAA00062F4E000100AA0001 /* sensevoice_engine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sensevoice_engine.h; sourceTree = "<group>"; };
+		5FAA00072F4E000100AA0001 /* SenseVoiceContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SenseVoiceContext.h; sourceTree = "<group>"; };
+		5FAA00082F4E000100AA0001 /* SenseVoiceContext.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SenseVoiceContext.mm; sourceTree = "<group>"; };
+		5FAA00092F4E000100AA0001 /* sensevoice_tokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sensevoice_tokenizer.h; sourceTree = "<group>"; };
+		5FAA000A2F4E000100AA0001 /* model.int8.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = model.int8.onnx; sourceTree = "<group>"; };
+		5FAA000B2F4E000100AA0001 /* tokens.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = tokens.txt; sourceTree = "<group>"; };
+		5FD46CB92F1B840700DC4766 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/System/Library/Frameworks/CoreML.framework; sourceTree = DEVELOPER_DIR; };
+		AABB00010000000000000001 /* ASREngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASREngineProtocol.swift; sourceTree = "<group>"; };
+		AABB00010000000000000002 /* ASREngineFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASREngineFactory.swift; sourceTree = "<group>"; };
+		AABB00010000000000000003 /* SenseVoiceASREngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SenseVoiceASREngine.swift; sourceTree = "<group>"; };
+		AABB00010000000000000004 /* ParaformerASREngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParaformerASREngine.swift; sourceTree = "<group>"; };
+		AABB00010000000000000005 /* ASRSessionMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASRSessionMetrics.swift; sourceTree = "<group>"; };
+		AABB00010000000000000006 /* MetricsOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsOverlayView.swift; sourceTree = "<group>"; };
+		AABB00010000000000000007 /* ASRBridgeResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ASRBridgeResult.h; sourceTree = "<group>"; };
+		AABB00010000000000000008 /* ASRBridgeResult.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ASRBridgeResult.mm; sourceTree = "<group>"; };
+		AABB00010000000000000009 /* ParaformerContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParaformerContext.h; sourceTree = "<group>"; };
+		AABB0001000000000000000A /* ParaformerContext.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ParaformerContext.mm; sourceTree = "<group>"; };
+		AABB0001000000000000000B /* inference_metrics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = inference_metrics.h; sourceTree = "<group>"; };
+		AABB0001000000000000000C /* paraformer_engine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = paraformer_engine.h; sourceTree = "<group>"; };
+		AABB0001000000000000000D /* paraformer_engine.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = paraformer_engine.cpp; sourceTree = "<group>"; };
+		AABB0001000000000000000E /* paraformer_encoder.int8.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = paraformer_encoder.int8.onnx; sourceTree = "<group>"; };
+		AABB0001000000000000000F /* paraformer_decoder.int8.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = paraformer_decoder.int8.onnx; sourceTree = "<group>"; };
+		AABB00010000000000000010 /* am.mvn */ = {isa = PBXFileReference; lastKnownFileType = text; path = am.mvn; sourceTree = "<group>"; };
+		AABB00010000000000000011 /* paraformer_tokens.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = paraformer_tokens.json; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		5F2A5EBA2F15556200CACF0D /* FunASR-iOSTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FunASR-iOSTests";
+			sourceTree = "<group>";
+		};
+		5F2A5EC42F15556200CACF0D /* FunASR-iOSUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FunASR-iOSUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5F2A5EA62F15556000CACF0D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F2A5F7A2F155D8A00CACF0D /* Accelerate.framework in Frameworks */,
+				5F2A601A2F16AEF700CACF0D /* onnxruntime.xcframework in Frameworks */,
+				5FD46CBA2F1B840700DC4766 /* CoreML.framework in Frameworks */,
+				5F1686BB2F17D65700F0C341 /* onnxruntime.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F2A5EB42F15556200CACF0D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F2A5EBE2F15556200CACF0D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5F2A5EA02F15556000CACF0D = {
+			isa = PBXGroup;
+			children = (
+				5F2A60062F16AEF700CACF0D /* FunASR-iOS */,
+				5F2A5F752F155C7900CACF0D /* Frameworks */,
+				5F2A5EBA2F15556200CACF0D /* FunASR-iOSTests */,
+				5F2A5EC42F15556200CACF0D /* FunASR-iOSUITests */,
+				5F2A5EAA2F15556000CACF0D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5F2A5EAA2F15556000CACF0D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5EA92F15556000CACF0D /* FunASR-iOS.app */,
+				5F2A5EB72F15556200CACF0D /* FunASR-iOSTests.xctest */,
+				5F2A5EC12F15556200CACF0D /* FunASR-iOSUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5F2A5F752F155C7900CACF0D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5FD46CB92F1B840700DC4766 /* CoreML.framework */,
+				5F2A5F792F155D8A00CACF0D /* Accelerate.framework */,
+				5F2A5F772F155D7800CACF0D /* onnxruntime.xcframework */,
+			);
+			path = Frameworks;
+			sourceTree = "<group>";
+		};
+		5F2A5FDD2F16AEF700CACF0D /* bridge */ = {
+			isa = PBXGroup;
+			children = (
+				AABB00010000000000000007 /* ASRBridgeResult.h */,
+				AABB00010000000000000008 /* ASRBridgeResult.mm */,
+				AABB00010000000000000009 /* ParaformerContext.h */,
+				AABB0001000000000000000A /* ParaformerContext.mm */,
+				5FAA00072F4E000100AA0001 /* SenseVoiceContext.h */,
+				5FAA00082F4E000100AA0001 /* SenseVoiceContext.mm */,
+				5F2A5FDC2F16AEF700CACF0D /* FunASR-iOS-Bridging-Header.h */,
+			);
+			path = bridge;
+			sourceTree = "<group>";
+		};
+		5F2A5FDF2F16AEF700CACF0D /* nlohmann */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5FDE2F16AEF700CACF0D /* json.hpp */,
+			);
+			path = nlohmann;
+			sourceTree = "<group>";
+		};
+		5F2A5FE52F16AEF700CACF0D /* include */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5FDF2F16AEF700CACF0D /* nlohmann */,
+				5F2A5FE02F16AEF700CACF0D /* audio_loader.h */,
+				5F2A5FE12F16AEF700CACF0D /* dr_wav.h */,
+				5F2A5FE22F16AEF700CACF0D /* feature_extractor.h */,
+				AABB0001000000000000000B /* inference_metrics.h */,
+				AABB0001000000000000000C /* paraformer_engine.h */,
+				5FAA00062F4E000100AA0001 /* sensevoice_engine.h */,
+				5FAA00092F4E000100AA0001 /* sensevoice_tokenizer.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		5F2A5FEC2F16AEF700CACF0D /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5FE62F16AEF700CACF0D /* coreml_provider_factory.h */,
+				5F2A5FE72F16AEF700CACF0D /* cpu_provider_factory.h */,
+				5F2A5FE82F16AEF700CACF0D /* onnxruntime_c_api.h */,
+				5F2A5FE92F16AEF700CACF0D /* onnxruntime_cxx_api.h */,
+				5F2A5FEA2F16AEF700CACF0D /* onnxruntime_cxx_inline.h */,
+				5F2A5FEB2F16AEF700CACF0D /* onnxruntime_float16.h */,
+			);
+			path = Headers;
+			sourceTree = "<group>";
+		};
+		5F2A5FEF2F16AEF700CACF0D /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5FEC2F16AEF700CACF0D /* Headers */,
+				5F2A5FED2F16AEF700CACF0D /* LICENSE */,
+				5F2A5FEE2F16AEF700CACF0D /* onnxruntime.xcframework */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		5F2A5FF52F16AEF700CACF0D /* models */ = {
+			isa = PBXGroup;
+			children = (
+				5FAA000A2F4E000100AA0001 /* model.int8.onnx */,
+				5FAA000B2F4E000100AA0001 /* tokens.txt */,
+				AABB0001000000000000000E /* paraformer_encoder.int8.onnx */,
+				AABB0001000000000000000F /* paraformer_decoder.int8.onnx */,
+				AABB00010000000000000010 /* am.mvn */,
+				AABB00010000000000000011 /* paraformer_tokens.json */,
+			);
+			path = models;
+			sourceTree = "<group>";
+		};
+		5F2A5FFB2F16AEF700CACF0D /* src */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5FF62F16AEF700CACF0D /* audio_loader.cpp */,
+				5F2A5FF72F16AEF700CACF0D /* feature_extractor.cpp */,
+				5F2A5FF82F16AEF700CACF0D /* main_inference.cpp */,
+				AABB0001000000000000000D /* paraformer_engine.cpp */,
+				5FAA00052F4E000100AA0001 /* sensevoice_engine.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		5F2A5FFF2F16AEF700CACF0D /* test_data */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5FFC2F16AEF700CACF0D /* 2412-153947-0000.flac */,
+				5F2A5FFD2F16AEF700CACF0D /* input_16k.wav */,
+				5F2A5FFE2F16AEF700CACF0D /* test_mel_input.bin */,
+			);
+			path = test_data;
+			sourceTree = "<group>";
+		};
+		5F2A60012F16AEF700CACF0D /* cpp_inference */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A5FE52F16AEF700CACF0D /* include */,
+				5F2A5FEF2F16AEF700CACF0D /* lib */,
+				5F2A5FF52F16AEF700CACF0D /* models */,
+				5F2A5FFB2F16AEF700CACF0D /* src */,
+				5F2A5FFF2F16AEF700CACF0D /* test_data */,
+				5F2A60002F16AEF700CACF0D /* CMakeLists.txt */,
+			);
+			path = cpp_inference;
+			sourceTree = "<group>";
+		};
+		5F2A60062F16AEF700CACF0D /* FunASR-iOS */ = {
+			isa = PBXGroup;
+			children = (
+				5F2A601B2F16AF9600CACF0D /* app */,
+				5F2A5FDD2F16AEF700CACF0D /* bridge */,
+				5F2A60012F16AEF700CACF0D /* cpp_inference */,
+				5F2A60022F16AEF700CACF0D /* Assets.xcassets */,
+				5F2A60042F16AEF700CACF0D /* FunASR-iOS.entitlements */,
+			);
+			path = "FunASR-iOS";
+			sourceTree = "<group>";
+		};
+		5F2A601B2F16AF9600CACF0D /* app */ = {
+			isa = PBXGroup;
+			children = (
+				AABB00010000000000000001 /* ASREngineProtocol.swift */,
+				AABB00010000000000000002 /* ASREngineFactory.swift */,
+				AABB00010000000000000005 /* ASRSessionMetrics.swift */,
+				AABB00010000000000000006 /* MetricsOverlayView.swift */,
+				AABB00010000000000000003 /* SenseVoiceASREngine.swift */,
+				AABB00010000000000000004 /* ParaformerASREngine.swift */,
+				5F2A60032F16AEF700CACF0D /* ContentView.swift */,
+				5F2A60052F16AEF700CACF0D /* FunASR_iOSApp.swift */,
+				5F1686B12F17CA4400F0C341 /* AVAudioEngine.swift */,
+				5F1686B32F17D05000F0C341 /* WaveformView.swift */,
+			);
+			path = app;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5F2A5EA82F15556000CACF0D /* FunASR-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F2A5ECB2F15556200CACF0D /* Build configuration list for PBXNativeTarget "FunASR-iOS" */;
+			buildPhases = (
+				5F2A5EA52F15556000CACF0D /* Sources */,
+				5F2A5EA62F15556000CACF0D /* Frameworks */,
+				5F2A5EA72F15556000CACF0D /* Resources */,
+				5F2A5F722F155B1A00CACF0D /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FunASR-iOS";
+			packageProductDependencies = (
+			);
+			productName = "FunASR-iOS";
+			productReference = 5F2A5EA92F15556000CACF0D /* FunASR-iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5F2A5EB62F15556200CACF0D /* FunASR-iOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F2A5ECE2F15556200CACF0D /* Build configuration list for PBXNativeTarget "FunASR-iOSTests" */;
+			buildPhases = (
+				5F2A5EB32F15556200CACF0D /* Sources */,
+				5F2A5EB42F15556200CACF0D /* Frameworks */,
+				5F2A5EB52F15556200CACF0D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5F2A5EB92F15556200CACF0D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5F2A5EBA2F15556200CACF0D /* FunASR-iOSTests */,
+			);
+			name = "FunASR-iOSTests";
+			packageProductDependencies = (
+			);
+			productName = "FunASR-iOSTests";
+			productReference = 5F2A5EB72F15556200CACF0D /* FunASR-iOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		5F2A5EC02F15556200CACF0D /* FunASR-iOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F2A5ED12F15556200CACF0D /* Build configuration list for PBXNativeTarget "FunASR-iOSUITests" */;
+			buildPhases = (
+				5F2A5EBD2F15556200CACF0D /* Sources */,
+				5F2A5EBE2F15556200CACF0D /* Frameworks */,
+				5F2A5EBF2F15556200CACF0D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5F2A5EC32F15556200CACF0D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5F2A5EC42F15556200CACF0D /* FunASR-iOSUITests */,
+			);
+			name = "FunASR-iOSUITests";
+			packageProductDependencies = (
+			);
+			productName = "FunASR-iOSUITests";
+			productReference = 5F2A5EC12F15556200CACF0D /* FunASR-iOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5F2A5EA12F15556000CACF0D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					5F2A5EA82F15556000CACF0D = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					5F2A5EB62F15556200CACF0D = {
+						CreatedOnToolsVersion = 16.4;
+						LastSwiftMigration = 1640;
+						TestTargetID = 5F2A5EA82F15556000CACF0D;
+					};
+					5F2A5EC02F15556200CACF0D = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 5F2A5EA82F15556000CACF0D;
+					};
+				};
+			};
+			buildConfigurationList = 5F2A5EA42F15556000CACF0D /* Build configuration list for PBXProject "FunASR-iOS" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5F2A5EA02F15556000CACF0D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5F2A5EAA2F15556000CACF0D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5F2A5EA82F15556000CACF0D /* FunASR-iOS */,
+				5F2A5EB62F15556200CACF0D /* FunASR-iOSTests */,
+				5F2A5EC02F15556200CACF0D /* FunASR-iOSUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5F2A5EA72F15556000CACF0D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5FD46CD52F1BC5DD00DC4766 /* Assets.xcassets in Resources */,
+				5FAA00032F4E000100AA0001 /* model.int8.onnx in Resources */,
+				5FAA00042F4E000100AA0001 /* tokens.txt in Resources */,
+				AABB0002000000000000000E /* paraformer_encoder.int8.onnx in Resources */,
+				AABB0002000000000000000F /* paraformer_decoder.int8.onnx in Resources */,
+				AABB00020000000000000010 /* am.mvn in Resources */,
+				AABB00020000000000000011 /* paraformer_tokens.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F2A5EB52F15556200CACF0D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F2A5EBF2F15556200CACF0D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5F2A5EA52F15556000CACF0D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5FAA00012F4E000100AA0001 /* sensevoice_engine.cpp in Sources */,
+				5F2A60082F16AEF700CACF0D /* audio_loader.cpp in Sources */,
+				5F2A600A2F16AEF700CACF0D /* FunASR_iOSApp.swift in Sources */,
+				5F2A600B2F16AEF700CACF0D /* feature_extractor.cpp in Sources */,
+				5F2A600C2F16AEF700CACF0D /* ContentView.swift in Sources */,
+				5FAA00022F4E000100AA0001 /* SenseVoiceContext.mm in Sources */,
+				5F1686B42F17D05000F0C341 /* WaveformView.swift in Sources */,
+				5F1686B22F17CA4400F0C341 /* AVAudioEngine.swift in Sources */,
+				5F2A600E2F16AEF700CACF0D /* main_inference.cpp in Sources */,
+				AABB00020000000000000001 /* ASREngineProtocol.swift in Sources */,
+				AABB00020000000000000002 /* ASREngineFactory.swift in Sources */,
+				AABB00020000000000000003 /* SenseVoiceASREngine.swift in Sources */,
+				AABB00020000000000000004 /* ParaformerASREngine.swift in Sources */,
+				AABB00020000000000000005 /* ASRSessionMetrics.swift in Sources */,
+				AABB00020000000000000006 /* MetricsOverlayView.swift in Sources */,
+				AABB00020000000000000008 /* ASRBridgeResult.mm in Sources */,
+				AABB0002000000000000000A /* ParaformerContext.mm in Sources */,
+				AABB0002000000000000000D /* paraformer_engine.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F2A5EB32F15556200CACF0D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F2A5EBD2F15556200CACF0D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5F2A5EB92F15556200CACF0D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5F2A5EA82F15556000CACF0D /* FunASR-iOS */;
+			targetProxy = 5F2A5EB82F15556200CACF0D /* PBXContainerItemProxy */;
+		};
+		5F2A5EC32F15556200CACF0D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5F2A5EA82F15556000CACF0D /* FunASR-iOS */;
+			targetProxy = 5F2A5EC22F15556200CACF0D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5F2A5EC92F15556200CACF0D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to the microphone for speech recognition.";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		5F2A5ECA2F15556200CACF0D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to the microphone for speech recognition.";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		5F2A5ECC2F15556200CACF0D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "FunASR-iOS/FunASR-iOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(SRCROOT)/FunASR-iOS/cpp_inference/include",
+					"$(SRCROOT)/FunASR-iOS/cpp_inference/lib/Headers",
+					"$(SRCROOT)/FunASR-iOS/bridge",
+				);
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.deployment.FunASR-iOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FunASR-iOS/bridge/FunASR-iOS-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		5F2A5ECD2F15556200CACF0D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "FunASR-iOS/FunASR-iOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(SRCROOT)/FunASR-iOS/cpp_inference/include",
+					"$(SRCROOT)/FunASR-iOS/cpp_inference/lib/Headers",
+					"$(SRCROOT)/FunASR-iOS/bridge",
+				);
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.deployment.FunASR-iOS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FunASR-iOS/bridge/FunASR-iOS-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+		5F2A5ECF2F15556200CACF0D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.deployment.FunASR-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "FunASR-iOS/bridge/FunASR-iOSTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FunASR-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FunASR-iOS";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		5F2A5ED02F15556200CACF0D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.deployment.FunASR-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "FunASR-iOS/bridge/FunASR-iOSTests-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FunASR-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FunASR-iOS";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+		5F2A5ED22F15556200CACF0D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.deployment.FunASR-iOSUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = "FunASR-iOS";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		5F2A5ED32F15556200CACF0D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BC5MV9MAUH;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.deployment.FunASR-iOSUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = "FunASR-iOS";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5F2A5EA42F15556000CACF0D /* Build configuration list for PBXProject "FunASR-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F2A5EC92F15556200CACF0D /* Debug */,
+				5F2A5ECA2F15556200CACF0D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5F2A5ECB2F15556200CACF0D /* Build configuration list for PBXNativeTarget "FunASR-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F2A5ECC2F15556200CACF0D /* Debug */,
+				5F2A5ECD2F15556200CACF0D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5F2A5ECE2F15556200CACF0D /* Build configuration list for PBXNativeTarget "FunASR-iOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F2A5ECF2F15556200CACF0D /* Debug */,
+				5F2A5ED02F15556200CACF0D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5F2A5ED12F15556200CACF0D /* Build configuration list for PBXNativeTarget "FunASR-iOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F2A5ED22F15556200CACF0D /* Debug */,
+				5F2A5ED32F15556200CACF0D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5F2A5EA12F15556000CACF0D /* Project object */;
+}

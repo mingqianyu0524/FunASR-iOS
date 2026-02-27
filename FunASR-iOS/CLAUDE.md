@@ -88,6 +88,22 @@ python3 export_fp16_without_emb.py  # Exports Whisper to ONNX FP16
 - Tests are minimal stubs (Swift Testing + XCTest)
 - The ONNX Runtime xcframework and all model files are gitignored — they must be obtained separately
 
+### Repo / Xcode Project Structure Note
+
+The git repository root (`FunASR-iOS/`) sits **one level inside** the Xcode project directory:
+
+```
+<workspace>/
+├── FunASR-iOS.xcodeproj/    ← Xcode project (outside git repo)
+└── FunASR-iOS/              ← git repo root (this directory)
+    ├── CLAUDE.md
+    ├── app/
+    ├── bridge/
+    └── cpp_inference/
+```
+
+`FunASR-iOS.xcodeproj` is therefore not tracked by git. For CI/CD (and for any fresh clone) to work with `xcodebuild`, the repo boundary must be moved up one level so the `.xcodeproj` is included. This is a one-time local fix: re-init or move the git root to `<workspace>/`.
+
 ---
 
 ## Roadmap: Paraformer 集成 + 流式 + DFX + 评测
@@ -201,3 +217,217 @@ Paraformer:  PCM → Fbank → CMVN → Encoder(分块+cache) → CIF Predictor 
 | SenseVoice-Large | ~10–13% | 较 Small 有提升 |
 
 参考论文：SenseVoice (arXiv:2407.04051), Paraformer (arXiv:2206.08317)
+
+### Phase 5 — CI/CD（GitHub Actions）
+
+#### 架构概述
+
+使用 GitHub Actions，单一 Job：**iOS Pipeline Integration Test**，在 macOS runner 上通过 XCTest 直接向推理 bridge 注入 PCM 数据，验证端到端转写误差。
+
+> iOS 模拟器无法将扬声器声音注入 AVAudioEngine，因此跳过 UI 层，直接调用 `SenseVoiceContext` / `ParaformerContext` bridge，功能等价于"播放音频后识别"。
+
+#### 5.1 前置工作（一次性，本地操作）
+
+**① 修复 .xcodeproj 不在 repo 内的问题**（见上方结构说明）
+
+将 git repo 根目录上移一层，使 `FunASR-iOS.xcodeproj` 纳入版本控制：
+```bash
+# 在 <workspace>/ 执行
+git init
+git remote add origin <remote-url>
+# 将原 FunASR-iOS/ 内容迁移，保持目录结构
+```
+
+**② 更新 `.gitignore`，解除测试 fixtures 的屏蔽**
+```diff
+-*.wav
++*.wav
++!FunASRTests/fixtures/*.wav
+```
+
+**③ 将模型文件发布为 GitHub Release asset（一次性）**
+```bash
+gh release create models-v1.0 \
+  path/to/model.int8.onnx \
+  path/to/tokens.txt \
+  path/to/am.mvn \
+  path/to/paraformer_tokens.json \
+  --title "ASR Model Artifacts v1.0"
+```
+
+#### 5.2 新增测试 Target：`FunASRTests`
+
+**目录结构（需在 Xcode 中添加 Test Target）：**
+
+```
+FunASRTests/
+├── ASRPipelineTests.swift   ← 主集成测试，断言 CER
+├── CERHelper.swift          ← Levenshtein 字错误率计算
+└── fixtures/
+    ├── ramc_sample.wav      ← MagicData-RAMC 单条样本（5~10s，普通话）
+    └── ramc_sample_ref.txt  ← 对应参考转写文本
+```
+
+**样本选取原则：** 普通话口语、无明显背景噪声、参考文本 < 50 字，用于 smoke test 而非鲁棒性测试（鲁棒性测试属于 Phase 4 离线评测）。
+
+**`CERHelper.swift`（字错误率，Levenshtein DP）：**
+```swift
+enum CERHelper {
+    /// 中文 CER = edit_distance(ref_chars, hyp_chars) / len(ref_chars)
+    /// 计算前去除空白字符
+    static func cer(hypothesis: String, reference: String) -> Double {
+        let h = Array(reference.filter { !$0.isWhitespace })
+        let r = Array(hypothesis.filter { !$0.isWhitespace })
+        guard !h.isEmpty else { return r.isEmpty ? 0 : 1 }
+        var dp = Array(0...h.count)
+        for (i, rc) in r.enumerated() {
+            var prev = dp; dp[0] = i + 1
+            for (j, hc) in h.enumerated() {
+                dp[j+1] = rc == hc ? prev[j] : 1 + min(prev[j], prev[j+1], dp[j])
+            }
+        }
+        return Double(dp[h.count]) / Double(h.count)
+    }
+}
+```
+
+**`ASRPipelineTests.swift`（核心测试逻辑）：**
+```swift
+import XCTest
+
+class ASRPipelineTests: XCTestCase {
+    // CI 通过环境变量注入模型路径；本地 fallback 到 test bundle
+    var modelDir: String {
+        ProcessInfo.processInfo.environment["MODEL_DIR"]
+            ?? Bundle(for: type(of: self)).resourcePath!
+    }
+
+    func testSenseVoiceMagicDataPoint() throws {
+        let pcmData = try loadFixtureWAV("ramc_sample")
+        let ref     = try loadFixtureText("ramc_sample_ref")
+
+        guard let ctx = SenseVoiceContext(modelPath: modelDir) else {
+            XCTFail("模型加载失败，MODEL_DIR=\(modelDir)"); return
+        }
+        let result = ctx.transcribeDataWithMetrics(pcmData)!
+        let cer = CERHelper.cer(hypothesis: result.text, reference: ref)
+
+        print("假设：\(result.text)\n参考：\(ref)\nCER: \(String(format:"%.1f%%", cer*100))  RTF: \(result.rtf)")
+        XCTAssertLessThan(cer, 0.20, "CER 超过 20% 阈值")
+    }
+
+    // MARK: - Helpers
+    private func loadFixtureWAV(_ name: String) throws -> Data {
+        let url = try XCTUnwrap(Bundle(for: type(of: self))
+            .url(forResource: name, withExtension: "wav"))
+        let raw = try Data(contentsOf: url)
+        return raw.dropFirst(44).withUnsafeBytes { ptr in   // 跳过 44B WAV header
+            let s = ptr.bindMemory(to: Int16.self)
+            var f = [Float](repeating: 0, count: s.count)
+            for i in f.indices { f[i] = Float(s[i]) / 32768.0 }
+            return f.withUnsafeBufferPointer { Data(buffer: $0) }
+        }
+    }
+    private func loadFixtureText(_ name: String) throws -> String {
+        let url = try XCTUnwrap(Bundle(for: type(of: self))
+            .url(forResource: name, withExtension: "txt"))
+        return try String(contentsOf: url, encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+```
+
+#### 5.3 GitHub Actions Workflow
+
+**`.github/workflows/ci.yml`：**
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ios-pipeline-test:
+    name: iOS Pipeline Integration Test
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      # ── ONNX Runtime xcframework ────────────────────────────────────
+      - name: Cache ONNX Runtime
+        id: cache-ort
+        uses: actions/cache@v4
+        with:
+          path: FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework
+          key: onnxruntime-1.20.1
+
+      - name: Download ONNX Runtime
+        if: steps.cache-ort.outputs.cache-hit != 'true'
+        run: |
+          curl -L https://github.com/microsoft/onnxruntime/releases/download/v1.20.1/\
+          onnxruntime-ios-xcframework-1.20.1.zip -o ort.zip
+          unzip ort.zip -d FunASR-iOS/cpp_inference/lib/
+
+      # ── ASR 模型（GitHub Releases）─────────────────────────────────
+      - name: Cache ASR models
+        id: cache-models
+        uses: actions/cache@v4
+        with:
+          path: ci_models/
+          key: asr-models-${{ hashFiles('ci/model_versions.txt') }}
+
+      - name: Download models from GitHub Releases
+        if: steps.cache-models.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ci_models
+          gh release download models-v1.0 \
+            --repo ${{ github.repository }} \
+            --pattern "model.int8.onnx" \
+            --pattern "tokens.txt" \
+            --pattern "am.mvn" \
+            --pattern "paraformer_tokens.json" \
+            --dir ci_models/
+
+      # ── 构建 + 运行 XCTest ──────────────────────────────────────────
+      - name: Build & run pipeline tests
+        run: |
+          xcodebuild test \
+            -project FunASR-iOS.xcodeproj \
+            -scheme FunASR-iOS \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' \
+            MODEL_DIR=${{ github.workspace }}/ci_models \
+            -resultBundlePath TestResults.xcresult \
+            | xcpretty --report junit --output test-results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results.xml
+            TestResults.xcresult
+```
+
+**注意事项：**
+- `MODEL_DIR` 通过 `xcodebuild` 的用户自定义 build setting 传入，在 XCTest 中用 `ProcessInfo.processInfo.environment["MODEL_DIR"]` 读取
+- `ci/model_versions.txt` 是一个纯文本文件，记录模型版本号，用于 cache key 失效控制
+- `xcpretty` 需要在 runner 上预装（`gem install xcpretty`），或替换为 `| tee build.log`
+
+#### 5.4 CER 阈值
+
+| 测试场景 | 阈值 | 说明 |
+|---------|------|------|
+| CI smoke test（单条样本） | `CER < 0.20` | 保守设定，模拟器无 ANE 加速导致数值精度与设备端略有差异 |
+| 回归防护（多条均值，未来扩展） | `CER < 0.15` | 接近 paper benchmark 的宽松版本 |
+| Phase 4 离线评测基准 | `CER < 0.11` | 对齐 Paraformer 公开 benchmark |
