@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   ios-pipeline-test:
@@ -26,18 +27,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework
-          key: onnxruntime-1.20.1
+          key: onnxruntime-1.21.0
 
       - name: Download ONNX Runtime
         if: steps.cache-ort.outputs.cache-hit != 'true'
         run: |
           curl -L -o ort.zip \
-            https://github.com/microsoft/onnxruntime/releases/download/v1.20.1/onnxruntime-objc-1.20.1.zip
+            https://download.onnxruntime.ai/pod-archive-onnxruntime-c-1.21.0.zip
           unzip -o ort.zip
-          # The zip extracts onnxruntime.xcframework at top level
-          mv onnxruntime.xcframework FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework \
-            || echo "xcframework already in place"
-          ls -la FunASR-iOS/cpp_inference/lib/
+          mkdir -p FunASR-iOS/cpp_inference/lib/
+          mv onnxruntime.xcframework FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework
+          ls -la FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework/
 
       # ── ASR models (GitHub Releases) ──────────────────────────────
       - name: Cache ASR models
