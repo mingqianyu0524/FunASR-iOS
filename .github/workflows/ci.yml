@@ -61,15 +61,14 @@ jobs:
 
       # ── Build + Test ──────────────────────────────────────────────
       - name: Build and run pipeline tests
-        env:
-          MODEL_DIR: ${{ github.workspace }}/ci_models
         run: |
           set -o pipefail
           xcodebuild test \
             -project FunASR-iOS.xcodeproj \
             -scheme FunASR-iOS \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -resultBundlePath TestResults.xcresult \
+            MODEL_DIR=${{ github.workspace }}/ci_models \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             2>&1 | tee build.log
