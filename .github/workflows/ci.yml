@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ios-pipeline-test:
+    name: iOS Pipeline Integration Test
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: List available simulators
+        run: xcrun simctl list devices available | head -30
+
+      # ── ONNX Runtime xcframework ──────────────────────────────────
+      - name: Cache ONNX Runtime
+        id: cache-ort
+        uses: actions/cache@v4
+        with:
+          path: FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework
+          key: onnxruntime-1.20.1
+
+      - name: Download ONNX Runtime
+        if: steps.cache-ort.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o ort.zip \
+            https://github.com/microsoft/onnxruntime/releases/download/v1.20.1/onnxruntime-objc-1.20.1.zip
+          unzip -o ort.zip
+          # The zip extracts onnxruntime.xcframework at top level
+          mv onnxruntime.xcframework FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework \
+            || echo "xcframework already in place"
+          ls -la FunASR-iOS/cpp_inference/lib/
+
+      # ── ASR models (GitHub Releases) ──────────────────────────────
+      - name: Cache ASR models
+        id: cache-models
+        uses: actions/cache@v4
+        with:
+          path: ci_models/
+          key: asr-models-${{ hashFiles('ci/model_versions.txt') }}
+
+      - name: Download models from GitHub Releases
+        if: steps.cache-models.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ci_models
+          gh release download models-v1.0 \
+            --repo ${{ github.repository }} \
+            --pattern "model.int8.onnx" \
+            --pattern "tokens.txt" \
+            --dir ci_models/
+
+      # ── Build + Test ──────────────────────────────────────────────
+      - name: Build and run pipeline tests
+        env:
+          MODEL_DIR: ${{ github.workspace }}/ci_models
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project FunASR-iOS.xcodeproj \
+            -scheme FunASR-iOS \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            2>&1 | tee build.log
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            build.log
+            TestResults.xcresult

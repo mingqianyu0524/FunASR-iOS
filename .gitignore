@@ -1,11 +1,38 @@
+# Xcode user data
 *.xcworkspacedata
+xcuserdata/
+DerivedData/
+*.xcuserstate
+
+# Large binary assets (models, frameworks, audio)
+*.onnx
+*.bin
 *.flac
 *.wav
-*.bin
-*.onnx
 **/test_data
+**/onnxruntime.xcframework/
+
+# Legacy / workspace clutter
+Frameworks/
+WhisperIOS/
 WhisperIOSTests/
 WhisperIOSUITests/
-WhisperIOS.xcodeproj/
-Frameworks/
-**/onnxruntime.xcframework/
+Build *.txt
+decoder_small_fp16.onnx
+encoder_small_fp16.onnx
+vocab_embedding_fp32.bin
+export_fp16_without_emb.py
+
+# Old root-level source duplicates (real source is under FunASR-iOS/)
+/app/
+/bridge/
+/cpp_inference/
+/Assets.xcassets/
+/.claude/
+**/settings.local.json
+
+# Misc
+.DS_Store
+
+# Allow test fixture WAV files
+!FunASR-iOSTests/fixtures/*.wav
