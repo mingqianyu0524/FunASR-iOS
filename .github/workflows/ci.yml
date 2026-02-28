@@ -17,6 +17,9 @@ jobs:
       - name: Select Xcode 16
         run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
 
+      - name: Install iOS Simulator Runtime
+        run: sudo xcodebuild -downloadPlatform iOS
+
       - name: List available simulators
         run: xcrun simctl list devices available | head -30
 
