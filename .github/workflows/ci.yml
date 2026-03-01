@@ -18,8 +18,17 @@ jobs:
       - name: Select Xcode 16
         run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
 
-      - name: Install iOS Simulator Runtime
-        run: sudo xcodebuild -downloadPlatform iOS
+      - name: Check iOS Simulator Runtime
+        run: |
+          # macos-15 runners ship with iOS 18 simulator pre-installed.
+          # Only attempt download if no runtime is available.
+          if xcrun simctl list runtimes 2>/dev/null | grep -q "iOS"; then
+            echo "iOS runtime already available:"
+            xcrun simctl list runtimes | grep iOS
+          else
+            echo "No iOS runtime found, downloading..."
+            sudo xcodebuild -downloadPlatform iOS
+          fi
 
       - name: List available simulators
         run: xcrun simctl list devices available | head -30
@@ -59,9 +68,15 @@ jobs:
           mkdir -p ci_models
           gh release download models-v1.0 \
             --repo ${{ github.repository }} \
-            --pattern "model.int8.onnx" \
-            --pattern "tokens.txt" \
+            --pattern "sensevoice.int8.onnx" \
+            --pattern "sensevoice_tokens.txt" \
+            --pattern "paraformer_enc.int8.onnx" \
+            --pattern "paraformer_dec.int8.onnx" \
+            --pattern "paraformer_am.mvn" \
+            --pattern "paraformer_tokens.txt" \
             --dir ci_models/
+          echo "Downloaded models:"
+          ls -lh ci_models/
 
       # ── Build + Test ──────────────────────────────────────────────
       - name: Build and run pipeline tests
