@@ -90,18 +90,7 @@ jobs:
           cp ci_models/paraformer_dec.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_decoder.int8.onnx
           cp ci_models/paraformer_am.mvn          FunASR-iOS/cpp_inference/models/am.mvn
           # Paraformer tokens: convert "token index\n" txt → JSON array (engine calls load_tokens_json)
-          python3 -c "
-import json, sys
-tokens = []
-with open('ci_models/paraformer_tokens.txt') as f:
-    for line in f:
-        parts = line.strip().split()
-        if parts:
-            tokens.append(parts[0])
-with open('FunASR-iOS/cpp_inference/models/paraformer_tokens.json', 'w') as f:
-    json.dump(tokens, f, ensure_ascii=False)
-print(f'Converted {len(tokens)} paraformer tokens to JSON')
-"
+          python3 -c "import json; t=[l.split()[0] for l in open('ci_models/paraformer_tokens.txt') if l.strip()]; open('FunASR-iOS/cpp_inference/models/paraformer_tokens.json','w').write(json.dumps(t,ensure_ascii=False)); print(f'Converted {len(t)} tokens to JSON')"
           ls -lh FunASR-iOS/cpp_inference/models/
 
       # ── Build + Test ──────────────────────────────────────────────
