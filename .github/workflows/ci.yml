@@ -15,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      - name: Select Xcode 16.4
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
 
       - name: Check iOS Simulator Runtime
         run: |
@@ -100,7 +100,7 @@ jobs:
           xcodebuild test \
             -project FunASR-iOS.xcodeproj \
             -scheme FunASR-iOS \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -resultBundlePath TestResults.xcresult \
             MODEL_DIR=${{ github.workspace }}/FunASR-iOS/cpp_inference/models \
             CODE_SIGN_IDENTITY="" \
