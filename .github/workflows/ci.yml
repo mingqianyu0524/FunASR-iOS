@@ -78,6 +78,32 @@ jobs:
           echo "Downloaded models:"
           ls -lh ci_models/
 
+      # ── Stage models with names the Xcode project and C++ engine expect ──
+      - name: Stage model files for build
+        run: |
+          mkdir -p FunASR-iOS/cpp_inference/models/
+          # SenseVoice
+          cp ci_models/sensevoice.int8.onnx   FunASR-iOS/cpp_inference/models/model.int8.onnx
+          cp ci_models/sensevoice_tokens.txt   FunASR-iOS/cpp_inference/models/tokens.txt
+          # Paraformer
+          cp ci_models/paraformer_enc.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_encoder.int8.onnx
+          cp ci_models/paraformer_dec.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_decoder.int8.onnx
+          cp ci_models/paraformer_am.mvn          FunASR-iOS/cpp_inference/models/am.mvn
+          # Paraformer tokens: convert "token index\n" txt → JSON array (engine calls load_tokens_json)
+          python3 -c "
+import json, sys
+tokens = []
+with open('ci_models/paraformer_tokens.txt') as f:
+    for line in f:
+        parts = line.strip().split()
+        if parts:
+            tokens.append(parts[0])
+with open('FunASR-iOS/cpp_inference/models/paraformer_tokens.json', 'w') as f:
+    json.dump(tokens, f, ensure_ascii=False)
+print(f'Converted {len(tokens)} paraformer tokens to JSON')
+"
+          ls -lh FunASR-iOS/cpp_inference/models/
+
       # ── Build + Test ──────────────────────────────────────────────
       - name: Build and run pipeline tests
         run: |
@@ -87,7 +113,7 @@ jobs:
             -scheme FunASR-iOS \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -resultBundlePath TestResults.xcresult \
-            MODEL_DIR=${{ github.workspace }}/ci_models \
+            MODEL_DIR=${{ github.workspace }}/FunASR-iOS/cpp_inference/models \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             2>&1 | tee build.log
