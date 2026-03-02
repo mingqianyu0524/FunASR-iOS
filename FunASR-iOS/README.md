@@ -1,14 +1,15 @@
 # FunASR-iOS
 
-An iOS speech recognition application featuring two state-of-the-art ASR (Automatic Speech Recognition) engines running on-device with Apple Neural Engine acceleration.
+An iOS speech recognition application featuring multiple ASR (Automatic Speech Recognition) engines running on-device with Apple Neural Engine acceleration.
 
 ## Features
 
-- **Dual ASR Engines**
-  - **SenseVoice** (active) — Non-autoregressive encoder-only model with CTC decoding
-  - **Whisper** (legacy) — OpenAI's autoregressive encoder-decoder model
+- **Multiple ASR Engines**
+  - **SenseVoice** — Non-autoregressive encoder-only model with CTC decoding
+  - **Paraformer** — Non-autoregressive model with CIF predictor and parallel decoder
 - **On-Device Inference** — ONNX Runtime with CoreML execution provider (ANE acceleration)
 - **Real-time Audio Processing** — 16kHz mono PCM capture with live waveform visualization
+- **DFX Metrics** — Real-time inference latency, RTF, memory usage overlay
 - **Optimized Performance** — INT8 quantization, zero-copy bridging, memory-efficient inference
 
 ## Architecture
@@ -19,12 +20,15 @@ FunASR-iOS uses a three-layer architecture with strict separation of concerns:
 ┌─────────────────────────────────────────┐
 │   Swift UI Layer (SwiftUI)             │
 │   - Recording interface                │
+│   - Model selection (SenseVoice/Para.) │
 │   - Waveform visualization             │
-│   - Transcription display               │
+│   - Transcription display              │
+│   - DFX metrics overlay               │
 └──────────────┬──────────────────────────┘
                │ NSData (zero-copy)
 ┌──────────────▼──────────────────────────┐
 │   Bridge Layer (Objective-C++)         │
+│   - SenseVoiceContext / ParaformerCtx  │
 │   - Type conversion Swift ↔ C++        │
 │   - Exception handling                 │
 └──────────────┬──────────────────────────┘
@@ -33,171 +37,183 @@ FunASR-iOS uses a three-layer architecture with strict separation of concerns:
 │   C++ Inference Engine                 │
 │   - Kaldi-compatible feature extraction│
 │   - ONNX Runtime inference             │
-│   - CTC/beam search decoding           │
+│   - CTC / CIF+parallel decoding       │
 └─────────────────────────────────────────┘
 ```
 
 ### SenseVoice Pipeline
 
 ```
-Microphone (48kHz)
-  → AVAudioEngine resample (16kHz mono)
-  → Feature Extraction:
-      • 25ms Hamming window, 10ms hop
-      • 512-point FFT
-      • 80-dimensional mel filterbank
-      • Natural log transform
-      • LFR (7-frame window, 6-frame shift)
-      • CMVN normalization
-  → ONNX Runtime (INT8 model, 228 MB)
-  → CTC Greedy Decode
-  → SentencePiece Detokenization
-  → Transcription Result
+Audio (16kHz PCM)
+  → 80-dim log-mel Fbank (25ms window, 10ms hop, 512-pt FFT)
+  → LFR (7-frame window, 6-frame shift, ~85% length reduction)
+  → CMVN normalization (from model metadata)
+  → ONNX Runtime inference [1, T_lfr, 560]
+  → CTC greedy decode → SentencePiece detokenize
+```
+
+### Paraformer Pipeline
+
+```
+Audio (16kHz PCM)
+  → 80-dim log-mel Fbank (25ms window, 10ms hop, 512-pt FFT)
+  → CMVN normalization (from am.mvn)
+  → Encoder ONNX → CIF Predictor → Parallel Decoder ONNX
+  → Token decode → detokenize
 ```
 
 ## Requirements
 
 - **Platform:** iOS 18.5+ / macOS 15.4+
 - **Devices:** iPhone, iPad, Apple Vision Pro
-- **Development:** Xcode 18.5+
+- **Development:** Xcode 16+
 - **Build Tools:** Swift 5.0, C++20
 
-## Build Instructions
+## Setup
 
-### Using Xcode (Recommended)
-
-1. Open `FunASR-iOS.xcodeproj` in Xcode
-2. Select target device or simulator
-3. Build and run (⌘R)
-
-### Command Line
+### 1. Clone and checkout
 
 ```bash
-# Build for device
-xcodebuild -project FunASR-iOS.xcodeproj \
-  -scheme FunASR-iOS \
-  -configuration Debug \
-  -destination 'platform=iOS,name=<your-device-name>'
+git clone https://github.com/mingqianyu0524/FunASR-iOS.git
+cd FunASR-iOS
+```
 
+### 2. Download ONNX Runtime
+
+```bash
+curl -L -o ort.zip \
+  https://download.onnxruntime.ai/pod-archive-onnxruntime-c-1.21.0.zip
+unzip -o ort.zip
+mkdir -p FunASR-iOS/cpp_inference/lib/
+mv onnxruntime.xcframework FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework
+rm ort.zip
+```
+
+### 3. Download model files
+
+```bash
+# Download from GitHub Releases
+gh release download models-v1.0 \
+  --repo mingqianyu0524/FunASR-iOS \
+  --dir ci_models/
+
+# Stage with names the Xcode project expects
+mkdir -p FunASR-iOS/cpp_inference/models/
+
+# SenseVoice (names match directly)
+cp ci_models/sensevoice.int8.onnx     FunASR-iOS/cpp_inference/models/
+cp ci_models/sensevoice_tokens.txt     FunASR-iOS/cpp_inference/models/
+
+# Paraformer (rename enc/dec → encoder/decoder)
+cp ci_models/paraformer_enc.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_encoder.int8.onnx
+cp ci_models/paraformer_dec.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_decoder.int8.onnx
+cp ci_models/paraformer_am.mvn         FunASR-iOS/cpp_inference/models/am.mvn
+
+# Convert paraformer tokens txt → JSON array
+python3 -c "
+import json
+tokens = [l.split()[0] for l in open('ci_models/paraformer_tokens.txt') if l.strip()]
+open('FunASR-iOS/cpp_inference/models/paraformer_tokens.json','w').write(json.dumps(tokens, ensure_ascii=False))
+print(f'Converted {len(tokens)} tokens to JSON')
+"
+
+rm -rf ci_models/
+```
+
+### 4. Build
+
+```bash
 # Build for simulator
 xcodebuild -project FunASR-iOS.xcodeproj \
   -scheme FunASR-iOS \
-  -configuration Debug \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 
 # Run tests
 xcodebuild test -project FunASR-iOS.xcodeproj \
   -scheme FunASR-iOS \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 ```
 
-### Standalone C++ Build (Testing Only)
-
-```bash
-cd FunASR-iOS/cpp_inference
-cmake -B build
-cmake --build build
-```
+Or open `FunASR-iOS.xcodeproj` in Xcode and press ⌘R.
 
 ## Project Structure
 
 ```
 FunASR-iOS/
-├── app/                          # Swift UI layer
-│   ├── FunASR_iOSApp.swift      # App entry point
-│   ├── ContentView.swift        # Main UI (recording/transcription)
-│   ├── AVAudioEngine.swift      # Audio recording (16kHz PCM)
-│   └── WaveformView.swift       # Real-time waveform visualization
+├── app/                              # Swift UI layer
+│   ├── FunASR_iOSApp.swift          # App entry point
+│   ├── ContentView.swift            # Main UI (recording/transcription/model picker)
+│   ├── AVAudioEngine.swift          # Audio recording (16kHz PCM)
+│   ├── WaveformView.swift           # Real-time waveform visualization
+│   ├── MetricsOverlayView.swift     # DFX metrics overlay
+│   ├── ASREngineProtocol.swift      # Unified ASR engine protocol
+│   ├── ASREngineFactory.swift       # Engine factory (SenseVoice/Paraformer)
+│   ├── SenseVoiceASREngine.swift    # SenseVoice engine wrapper
+│   ├── ParaformerASREngine.swift    # Paraformer engine wrapper
+│   └── ASRSessionMetrics.swift      # Inference metrics collection
 │
-├── bridge/                       # Objective-C++ bridge layer
-│   ├── SenseVoiceContext.mm     # Active: SenseVoice bridge
-│   └── WhisperContext.mm        # Legacy: Whisper bridge
+├── bridge/                           # Objective-C++ bridge layer
+│   ├── SenseVoiceContext.mm         # SenseVoice bridge
+│   ├── ParaformerContext.mm         # Paraformer bridge
+│   └── ASRBridgeResult.mm          # Shared result type
 │
-├── cpp_inference/               # C++ inference engine
+├── cpp_inference/                    # C++ inference engine
 │   ├── include/
-│   │   ├── sensevoice_engine.h      # SenseVoice inference
-│   │   ├── whisper_engine.h         # Whisper inference
-│   │   ├── feature_extractor.h      # 80-dim log-Fbank extraction
-│   │   ├── sensevoice_tokenizer.h   # SentencePiece tokenizer
-│   │   └── whisper_tokenizer.h      # Whisper tokenizer
+│   │   ├── sensevoice_engine.h
+│   │   ├── paraformer_engine.h
+│   │   ├── feature_extractor.h      # 80-dim log-Fbank (Kaldi-compatible)
+│   │   └── sensevoice_tokenizer.h   # SentencePiece tokenizer
 │   │
-│   ├── src/                     # Implementation files
+│   ├── src/
 │   │   ├── sensevoice_engine.cpp
-│   │   ├── whisper_engine.cpp
-│   │   ├── feature_extractor.cpp
-│   │   └── whisper_tokenizer.cpp
+│   │   ├── paraformer_engine.cpp
+│   │   └── feature_extractor.cpp
 │   │
 │   ├── lib/
-│   │   └── onnxruntime.xcframework  # ONNX Runtime (gitignored)
+│   │   └── onnxruntime.xcframework  # ONNX Runtime v1.21.0 (gitignored)
 │   │
-│   └── models/                  # ONNX models (gitignored)
-│       ├── sensevoice.int8.onnx          # SenseVoice INT8 (228 MB)
-│       ├── sensevoice_tokens.txt               # SenseVoice vocabulary
-│       ├── encoder.onnx             # Whisper encoder FP32
-│       ├── decoder.onnx             # Whisper decoder FP32
-│       ├── encoder_int8.onnx        # Whisper encoder INT8
-│       ├── decoder_int8.onnx        # Whisper decoder INT8
-│       └── vocab.json               # Whisper vocabulary
+│   └── models/                       # ONNX models (gitignored)
+│       ├── sensevoice.int8.onnx          # SenseVoice INT8 (~228 MB)
+│       ├── sensevoice_tokens.txt         # SenseVoice vocabulary (25,055 tokens)
+│       ├── paraformer_encoder.int8.onnx  # Paraformer encoder INT8 (~158 MB)
+│       ├── paraformer_decoder.int8.onnx  # Paraformer decoder INT8 (~68 MB)
+│       ├── am.mvn                        # Paraformer CMVN stats
+│       └── paraformer_tokens.json        # Paraformer vocabulary (8,404 tokens)
 │
-└── Assets.xcassets/             # App icons and images
+└── Assets.xcassets/                  # App icons and images
 ```
 
 ## Models
 
-**Note:** Model files are not included in the repository due to size constraints (gitignored).
+Model files are not included in the repository due to size constraints (gitignored). See [Setup](#setup) for download instructions.
 
-### SenseVoice (Active)
-- **Model:** `sensevoice.int8.onnx` (228 MB, INT8 quantized)
+### SenseVoice
+- **Model:** `sensevoice.int8.onnx` (~228 MB, INT8 quantized)
 - **Vocabulary:** `sensevoice_tokens.txt` (~316 KB, 25,055 tokens)
 - **Type:** Non-autoregressive encoder-only
 - **Decoding:** CTC greedy decode
-- **Languages:** Primarily Chinese (language ID: 3)
 
-### Whisper (Legacy)
-- **Encoder:** `encoder.onnx` (31 MB, FP32) or `encoder_int8.onnx` (9.6 MB)
-- **Decoder:** `decoder.onnx` (190 MB, FP32) or `decoder_int8.onnx` (49 MB)
-- **Vocabulary:** `vocab.json` (1.1 MB) + `vocab_embedding_fp32.bin` (152 MB)
-- **Type:** Autoregressive encoder-decoder
-- **Decoding:** Beam search
-
-### Model Export
-
-To export Whisper models to ONNX format:
-
-```bash
-python3 export_fp16_without_emb.py
-```
-
-**Requirements:** `torch`, `whisper`, `onnx`, `onnxconverter-common`
+### Paraformer
+- **Encoder:** `paraformer_encoder.int8.onnx` (~158 MB, INT8 quantized)
+- **Decoder:** `paraformer_decoder.int8.onnx` (~68 MB, INT8 quantized)
+- **CMVN:** `am.mvn` (~11 KB)
+- **Vocabulary:** `paraformer_tokens.json` (~94 KB, 8,404 tokens)
+- **Type:** Non-autoregressive with CIF predictor + parallel decoder
 
 ## Dependencies
 
 ### Native iOS Frameworks
 - `SwiftUI` — Declarative UI framework
 - `AVFoundation` — Audio recording and processing
-- `Accelerate.framework` — SIMD/vDSP optimizations
+- `Accelerate.framework` — SIMD/vDSP optimizations (FFT, matrix ops, windowing)
 - `CoreML.framework` — Neural Engine acceleration
 
 ### Third-Party Libraries
-- **ONNX Runtime** (XCFramework) — Cross-platform ML inference with CoreML provider
+- **ONNX Runtime v1.21.0** (XCFramework) — ML inference with CoreML execution provider
 - **dr_wav.h** — Header-only WAV file loader
 - **nlohmann/json.hpp** — Header-only JSON parser
-
-## Performance Optimizations
-
-1. **INT8 Quantization** — 4× model size reduction with minimal accuracy loss
-2. **CoreML Execution Provider** — Hardware acceleration via Apple Neural Engine
-3. **Zero-Copy Bridging** — Direct pointer access between Swift and C++
-4. **LFR (Low Frame Rate)** — ~85% sequence length reduction (7-frame window, 6-frame shift)
-5. **Memory Management** — Device allocator prevents ONNX Runtime memory accumulation
-6. **Accelerate Framework** — Apple vDSP for optimized FFT, matrix operations, windowing
-
-## Known Issues
-
-- Tests are minimal (placeholder stubs only)
-- No linting or code formatting configuration
-- ONNX Runtime xcframework and model files must be obtained separately
-- Comments in C++ files are mixed Chinese/English
 
 ## License
 
@@ -205,6 +221,5 @@ python3 export_fp16_without_emb.py
 
 ## Acknowledgments
 
-- OpenAI Whisper for the original Whisper model architecture
-- SenseVoice team for the non-autoregressive ASR model
-- ONNX Runtime for cross-platform inference support
+- [FunASR](https://github.com/modelscope/FunASR) — SenseVoice and Paraformer model architectures
+- [ONNX Runtime](https://onnxruntime.ai/) — Cross-platform ML inference
