@@ -25,7 +25,7 @@ class ASRPipelineTests: XCTestCase {
             return
         }
 
-        let text = result.text ?? ""
+        let text = stripSpecialTokens(result.text ?? "")
         let cer = CERHelper.cer(hypothesis: text, reference: ref)
 
         print("""
@@ -81,6 +81,14 @@ class ASRPipelineTests: XCTestCase {
             }
         }
         return nil
+    }
+
+    /// Strip SenseVoice special tokens like <|zh|>, <|NEUTRAL|>, <|Speech|> from decoded text.
+    private func stripSpecialTokens(_ text: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: "<\\|[^|>]*\\|>") else { return text }
+        let range = NSRange(text.startIndex..., in: text)
+        return regex.stringByReplacingMatches(in: text, range: range, withTemplate: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func loadFixtureText(_ name: String) throws -> String {

@@ -20,8 +20,8 @@
 		5F2A601A2F16AEF700CACF0D /* onnxruntime.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F2A5FEE2F16AEF700CACF0D /* onnxruntime.xcframework */; };
 		5FAA00012F4E000100AA0001 /* sensevoice_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5FAA00052F4E000100AA0001 /* sensevoice_engine.cpp */; };
 		5FAA00022F4E000100AA0001 /* SenseVoiceContext.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5FAA00082F4E000100AA0001 /* SenseVoiceContext.mm */; };
-		5FAA00032F4E000100AA0001 /* model.int8.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 5FAA000A2F4E000100AA0001 /* model.int8.onnx */; };
-		5FAA00042F4E000100AA0001 /* tokens.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5FAA000B2F4E000100AA0001 /* tokens.txt */; };
+		5FAA00032F4E000100AA0001 /* sensevoice.int8.onnx in Resources */ = {isa = PBXBuildFile; fileRef = 5FAA000A2F4E000100AA0001 /* sensevoice.int8.onnx */; };
+		5FAA00042F4E000100AA0001 /* sensevoice_tokens.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5FAA000B2F4E000100AA0001 /* sensevoice_tokens.txt */; };
 		5FD46CBA2F1B840700DC4766 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FD46CB92F1B840700DC4766 /* CoreML.framework */; };
 		5FD46CD52F1BC5DD00DC4766 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5F2A60022F16AEF700CACF0D /* Assets.xcassets */; };
 		AABB00020000000000000001 /* ASREngineProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB00010000000000000001 /* ASREngineProtocol.swift */; };
@@ -107,8 +107,8 @@
 		5FAA00072F4E000100AA0001 /* SenseVoiceContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SenseVoiceContext.h; sourceTree = "<group>"; };
 		5FAA00082F4E000100AA0001 /* SenseVoiceContext.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SenseVoiceContext.mm; sourceTree = "<group>"; };
 		5FAA00092F4E000100AA0001 /* sensevoice_tokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sensevoice_tokenizer.h; sourceTree = "<group>"; };
-		5FAA000A2F4E000100AA0001 /* model.int8.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = model.int8.onnx; sourceTree = "<group>"; };
-		5FAA000B2F4E000100AA0001 /* tokens.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = tokens.txt; sourceTree = "<group>"; };
+		5FAA000A2F4E000100AA0001 /* sensevoice.int8.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; path = sensevoice.int8.onnx; sourceTree = "<group>"; };
+		5FAA000B2F4E000100AA0001 /* sensevoice_tokens.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = sensevoice_tokens.txt; sourceTree = "<group>"; };
 		5FD46CB92F1B840700DC4766 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/System/Library/Frameworks/CoreML.framework; sourceTree = DEVELOPER_DIR; };
 		AABB00010000000000000001 /* ASREngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASREngineProtocol.swift; sourceTree = "<group>"; };
 		AABB00010000000000000002 /* ASREngineFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASREngineFactory.swift; sourceTree = "<group>"; };
@@ -265,8 +265,8 @@
 		5F2A5FF52F16AEF700CACF0D /* models */ = {
 			isa = PBXGroup;
 			children = (
-				5FAA000A2F4E000100AA0001 /* model.int8.onnx */,
-				5FAA000B2F4E000100AA0001 /* tokens.txt */,
+				5FAA000A2F4E000100AA0001 /* sensevoice.int8.onnx */,
+				5FAA000B2F4E000100AA0001 /* sensevoice_tokens.txt */,
 				AABB0001000000000000000E /* paraformer_encoder.int8.onnx */,
 				AABB0001000000000000000F /* paraformer_decoder.int8.onnx */,
 				AABB00010000000000000010 /* am.mvn */,
@@ -459,8 +459,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				5FD46CD52F1BC5DD00DC4766 /* Assets.xcassets in Resources */,
-				5FAA00032F4E000100AA0001 /* model.int8.onnx in Resources */,
-				5FAA00042F4E000100AA0001 /* tokens.txt in Resources */,
+				5FAA00032F4E000100AA0001 /* sensevoice.int8.onnx in Resources */,
+				5FAA00042F4E000100AA0001 /* sensevoice_tokens.txt in Resources */,
 				AABB0002000000000000000E /* paraformer_encoder.int8.onnx in Resources */,
 				AABB0002000000000000000F /* paraformer_decoder.int8.onnx in Resources */,
 				AABB00020000000000000010 /* am.mvn in Resources */,

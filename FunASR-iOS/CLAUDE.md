@@ -59,7 +59,7 @@ Swift UI (SwiftUI)  →  Obj-C++ Bridge (.mm)  →  C++ Inference Engine
 
 ### Models (`FunASR-iOS/cpp_inference/models/`)
 All `.onnx` and `.bin` files are gitignored. Key models:
-- `model.int8.onnx` (228 MB) — SenseVoice INT8 quantized
+- `sensevoice.int8.onnx` (228 MB) — SenseVoice INT8 quantized
 - `encoder.onnx` / `decoder.onnx` — Whisper FP32
 - `encoder_int8.onnx` / `decoder_int8.onnx` — Whisper INT8
 
@@ -248,8 +248,8 @@ git remote add origin <remote-url>
 **③ 将模型文件发布为 GitHub Release asset（一次性）**
 ```bash
 gh release create models-v1.0 \
-  path/to/model.int8.onnx \
-  path/to/tokens.txt \
+  path/to/sensevoice.int8.onnx \
+  path/to/sensevoice_tokens.txt \
   path/to/am.mvn \
   path/to/paraformer_tokens.json \
   --title "ASR Model Artifacts v1.0"
@@ -392,8 +392,8 @@ jobs:
           mkdir -p ci_models
           gh release download models-v1.0 \
             --repo ${{ github.repository }} \
-            --pattern "model.int8.onnx" \
-            --pattern "tokens.txt" \
+            --pattern "sensevoice.int8.onnx" \
+            --pattern "sensevoice_tokens.txt" \
             --pattern "am.mvn" \
             --pattern "paraformer_tokens.json" \
             --dir ci_models/

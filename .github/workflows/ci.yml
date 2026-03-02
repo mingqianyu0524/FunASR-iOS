@@ -15,8 +15,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+      - name: Select Xcode 16.4
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+
+      - name: Check iOS Simulator Runtime
+        run: |
+          # macos-15 runners ship with iOS 18 simulator pre-installed.
+          # Only attempt download if no runtime is available.
+          if xcrun simctl list runtimes 2>/dev/null | grep -q "iOS"; then
+            echo "iOS runtime already available:"
+            xcrun simctl list runtimes | grep iOS
+          else
+            echo "No iOS runtime found, downloading..."
+            sudo xcodebuild -downloadPlatform iOS
+          fi
 
       - name: Install iOS Simulator Runtime
         run: sudo xcodebuild -downloadPlatform iOS
@@ -38,6 +50,7 @@ jobs:
           curl -L -o ort.zip \
             https://download.onnxruntime.ai/pod-archive-onnxruntime-c-1.21.0.zip
           unzip -o ort.zip
+          # The zip extracts onnxruntime.xcframework at top level
           mkdir -p FunASR-iOS/cpp_inference/lib/
           mv onnxruntime.xcframework FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework
           ls -la FunASR-iOS/cpp_inference/lib/onnxruntime.xcframework/
@@ -58,9 +71,30 @@ jobs:
           mkdir -p ci_models
           gh release download models-v1.0 \
             --repo ${{ github.repository }} \
-            --pattern "model.int8.onnx" \
-            --pattern "tokens.txt" \
+            --pattern "sensevoice.int8.onnx" \
+            --pattern "sensevoice_tokens.txt" \
+            --pattern "paraformer_enc.int8.onnx" \
+            --pattern "paraformer_dec.int8.onnx" \
+            --pattern "paraformer_am.mvn" \
+            --pattern "paraformer_tokens.txt" \
             --dir ci_models/
+          echo "Downloaded models:"
+          ls -lh ci_models/
+
+      # ── Stage models with names the Xcode project and C++ engine expect ──
+      - name: Stage model files for build
+        run: |
+          mkdir -p FunASR-iOS/cpp_inference/models/
+          # SenseVoice
+          cp ci_models/sensevoice.int8.onnx   FunASR-iOS/cpp_inference/models/sensevoice.int8.onnx
+          cp ci_models/sensevoice_tokens.txt   FunASR-iOS/cpp_inference/models/sensevoice_tokens.txt
+          # Paraformer
+          cp ci_models/paraformer_enc.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_encoder.int8.onnx
+          cp ci_models/paraformer_dec.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_decoder.int8.onnx
+          cp ci_models/paraformer_am.mvn          FunASR-iOS/cpp_inference/models/am.mvn
+          # Paraformer tokens: convert "token index\n" txt → JSON array (engine calls load_tokens_json)
+          python3 -c "import json; t=[l.split()[0] for l in open('ci_models/paraformer_tokens.txt') if l.strip()]; open('FunASR-iOS/cpp_inference/models/paraformer_tokens.json','w').write(json.dumps(t,ensure_ascii=False)); print(f'Converted {len(t)} tokens to JSON')"
+          ls -lh FunASR-iOS/cpp_inference/models/
 
       # ── Build + Test ──────────────────────────────────────────────
       - name: Build and run pipeline tests
@@ -69,9 +103,9 @@ jobs:
           xcodebuild test \
             -project FunASR-iOS.xcodeproj \
             -scheme FunASR-iOS \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -resultBundlePath TestResults.xcresult \
-            MODEL_DIR=${{ github.workspace }}/ci_models \
+            MODEL_DIR=${{ github.workspace }}/FunASR-iOS/cpp_inference/models \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             2>&1 | tee build.log
