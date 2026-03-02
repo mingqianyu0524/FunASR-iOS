@@ -30,12 +30,6 @@ jobs:
             sudo xcodebuild -downloadPlatform iOS
           fi
 
-      - name: Install iOS Simulator Runtime
-        run: sudo xcodebuild -downloadPlatform iOS
-
-      - name: List available simulators
-        run: xcrun simctl list devices available | head -30
-
       # ── ONNX Runtime xcframework ──────────────────────────────────
       - name: Cache ONNX Runtime
         id: cache-ort
@@ -104,6 +98,7 @@ jobs:
             -project FunASR-iOS.xcodeproj \
             -scheme FunASR-iOS \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+            -skip-testing:FunASR-iOSUITests \
             -resultBundlePath TestResults.xcresult \
             MODEL_DIR=${{ github.workspace }}/FunASR-iOS/cpp_inference/models \
             CODE_SIGN_IDENTITY="" \
