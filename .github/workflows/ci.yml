@@ -83,8 +83,8 @@ jobs:
         run: |
           mkdir -p FunASR-iOS/cpp_inference/models/
           # SenseVoice
-          cp ci_models/sensevoice.int8.onnx   FunASR-iOS/cpp_inference/models/model.int8.onnx
-          cp ci_models/sensevoice_tokens.txt   FunASR-iOS/cpp_inference/models/tokens.txt
+          cp ci_models/sensevoice.int8.onnx   FunASR-iOS/cpp_inference/models/sensevoice.int8.onnx
+          cp ci_models/sensevoice_tokens.txt   FunASR-iOS/cpp_inference/models/sensevoice_tokens.txt
           # Paraformer
           cp ci_models/paraformer_enc.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_encoder.int8.onnx
           cp ci_models/paraformer_dec.int8.onnx  FunASR-iOS/cpp_inference/models/paraformer_decoder.int8.onnx

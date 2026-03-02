@@ -131,8 +131,8 @@ FunASR-iOS/
 │   │   └── onnxruntime.xcframework  # ONNX Runtime (gitignored)
 │   │
 │   └── models/                  # ONNX models (gitignored)
-│       ├── model.int8.onnx          # SenseVoice INT8 (228 MB)
-│       ├── tokens.txt               # SenseVoice vocabulary
+│       ├── sensevoice.int8.onnx          # SenseVoice INT8 (228 MB)
+│       ├── sensevoice_tokens.txt               # SenseVoice vocabulary
 │       ├── encoder.onnx             # Whisper encoder FP32
 │       ├── decoder.onnx             # Whisper decoder FP32
 │       ├── encoder_int8.onnx        # Whisper encoder INT8
@@ -147,8 +147,8 @@ FunASR-iOS/
 **Note:** Model files are not included in the repository due to size constraints (gitignored).
 
 ### SenseVoice (Active)
-- **Model:** `model.int8.onnx` (228 MB, INT8 quantized)
-- **Vocabulary:** `tokens.txt` (~316 KB, 25,055 tokens)
+- **Model:** `sensevoice.int8.onnx` (228 MB, INT8 quantized)
+- **Vocabulary:** `sensevoice_tokens.txt` (~316 KB, 25,055 tokens)
 - **Type:** Non-autoregressive encoder-only
 - **Decoding:** CTC greedy decode
 - **Languages:** Primarily Chinese (language ID: 3)
