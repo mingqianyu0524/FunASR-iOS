@@ -42,7 +42,126 @@ class ASRPipelineTests: XCTestCase {
         XCTAssertLessThan(cer, 0.20, "CER \(cer) exceeds 20% threshold")
     }
 
+    // MARK: - Batch Evaluation
+
+    /// Batch evaluation across RAMC and AISHELL-1 CI fixtures.
+    /// Requires EVAL_AUDIO_DIR env var pointing to ci_fixtures/ directory.
+    /// Skipped automatically if the env var is not set.
+    func testBatchEval() throws {
+        guard let evalAudioDir = ProcessInfo.processInfo.environment["EVAL_AUDIO_DIR"] else {
+            throw XCTSkip("EVAL_AUDIO_DIR not set — skipping batch evaluation")
+        }
+
+        guard let ctx = SenseVoiceContext(modelPath: modelDir) else {
+            XCTFail("SenseVoice init failed, MODEL_DIR=\(modelDir)")
+            return
+        }
+
+        let subsets: [(name: String, subdir: String)] = [
+            ("RAMC", "ramc"),
+            ("AISHELL-1", "aishell1"),
+        ]
+
+        for subset in subsets {
+            let subsetDir = URL(fileURLWithPath: evalAudioDir).appendingPathComponent(subset.subdir)
+            let wavFiles = (try? FileManager.default.contentsOfDirectory(
+                at: subsetDir, includingPropertiesForKeys: nil
+            ).filter { $0.pathExtension == "wav" }.sorted { $0.lastPathComponent < $1.lastPathComponent }) ?? []
+
+            guard !wavFiles.isEmpty else {
+                print("── Batch Eval: \(subset.name): no WAV files found in \(subsetDir.path), skipping")
+                continue
+            }
+
+            var totalRefChars = 0
+            var totalDist = 0
+            var totalDel = 0, totalIns = 0, totalSub = 0
+            var errorUtts = 0
+            var totalUtts = 0
+
+            for wavURL in wavFiles {
+                let stem = wavURL.deletingPathExtension().lastPathComponent
+                let txtURL = subsetDir.appendingPathComponent(stem + ".txt")
+                guard let ref = try? String(contentsOf: txtURL, encoding: .utf8)
+                    .trimmingCharacters(in: .whitespacesAndNewlines),
+                      !ref.isEmpty else { continue }
+
+                guard let pcmData = try? loadWAVFromURL(wavURL) else { continue }
+                guard let result = ctx.transcribeData(withMetrics: pcmData) else { continue }
+
+                let hyp = stripSpecialTokens(result.text ?? "")
+                let details = CERHelper.cerWithDetails(hypothesis: hyp, reference: ref)
+                let refChars = ref.filter { !$0.isWhitespace }.count
+
+                totalRefChars += refChars
+                let dist = details.deletions + details.insertions + details.substitutions
+                totalDist += dist
+                totalDel += details.deletions
+                totalIns += details.insertions
+                totalSub += details.substitutions
+                if dist > 0 { errorUtts += 1 }
+                totalUtts += 1
+            }
+
+            guard totalUtts > 0, totalRefChars > 0 else {
+                print("── Batch Eval: \(subset.name): no matched utterances, skipping")
+                continue
+            }
+
+            let cer = Double(totalDist) / Double(totalRefChars)
+            let ser = Double(errorUtts) / Double(totalUtts)
+
+            // Print in a format that parse_test_results.py can extract
+            print("""
+            ── Batch Eval: \(subset.name) (\(totalUtts) utterances) ──
+            CER:   \(String(format: "%.1f%%", cer * 100))   SER:  \(String(format: "%.1f%%", ser * 100))
+            D:  \(totalDel)  I:  \(totalIns)  S: \(totalSub)  Ref chars: \(totalRefChars)
+            """)
+
+            // Loose regression guard: CER < 30% for both datasets
+            XCTAssertLessThan(cer, 0.30, "\(subset.name) CER \(String(format:"%.1f%%",cer*100)) exceeds 30% threshold")
+        }
+    }
+
+    // MARK: - SNR Robustness (optional)
+
+    /// Add Gaussian white noise at a given SNR (dB) to a float PCM array.
+    private func addNoise(to pcm: [Float], snrDB: Float) -> [Float] {
+        let signalPower = pcm.reduce(0) { $0 + $1 * $1 } / Float(pcm.count)
+        guard signalPower > 0 else { return pcm }
+        let noisePower = signalPower / pow(10, snrDB / 10)
+        let noiseStd = sqrt(noisePower)
+        // Simple LCG-based noise for reproducibility (no Foundation dependency)
+        var state: UInt64 = 12345678
+        func nextNormal() -> Float {
+            state = state &* 6364136223846793005 &+ 1442695040888963407
+            let u1 = Float(state >> 33) / Float(UInt32.max)
+            state = state &* 6364136223846793005 &+ 1442695040888963407
+            let u2 = Float(state >> 33) / Float(UInt32.max)
+            // Box-Muller
+            let r = sqrt(-2 * log(max(u1, 1e-10)))
+            let theta = 2 * Float.pi * u2
+            return r * cos(theta)
+        }
+        return pcm.map { $0 + nextNormal() * noiseStd }
+    }
+
     // MARK: - Helpers
+
+    /// Load WAV from an arbitrary URL (for batch eval directory scanning).
+    private func loadWAVFromURL(_ url: URL) throws -> Data {
+        let fileData = try Data(contentsOf: url)
+        let headerSize = parseWAVDataOffset(fileData) ?? 44
+        let pcmBytes = fileData.dropFirst(headerSize)
+        return pcmBytes.withUnsafeBytes { rawBuffer in
+            let int16Samples = rawBuffer.bindMemory(to: Int16.self)
+            var floats = [Float](repeating: 0, count: int16Samples.count)
+            for i in floats.indices { floats[i] = Float(int16Samples[i]) / 32768.0 }
+            return floats.withUnsafeBufferPointer { Data(buffer: $0) }
+        }
+    }
+
+    // MARK: - Original Helpers
 
     /// Load a WAV file from the test bundle, decode 16-bit PCM to [Float], return as Data.
     private func loadFixtureWAV(_ name: String) throws -> Data {

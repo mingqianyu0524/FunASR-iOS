@@ -35,6 +35,11 @@
             value = "$(MODEL_DIR)"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "EVAL_AUDIO_DIR"
+            value = "$(EVAL_AUDIO_DIR)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
       <Testables>
          <TestableReference

@@ -1,0 +1,13 @@
+{
+  "model": "sensevoice",
+  "dataset": "AISHELL1-test",
+  "note": "Baseline pending full evaluation run. Update after running scripts/eval_python.py on full AISHELL-1 test set.",
+  "total_utterances": null,
+  "cer": null,
+  "ser": null,
+  "deletions": null,
+  "insertions": null,
+  "substitutions": null,
+  "total_ref_chars": null,
+  "eval_date": null
+}
