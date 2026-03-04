@@ -124,8 +124,8 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -skip-testing:FunASR-iOSUITests \
             -resultBundlePath TestResults.xcresult \
+            -testenv EVAL_AUDIO_DIR=${{ github.workspace }}/ci_fixtures \
             MODEL_DIR=${{ github.workspace }}/FunASR-iOS/cpp_inference/models \
-            EVAL_AUDIO_DIR=${{ github.workspace }}/ci_fixtures \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             2>&1 | tee build.log
@@ -135,6 +135,7 @@ jobs:
         if: always()
         run: |
           python3 scripts/parse_test_results.py \
+            --results-json ci_fixtures/batch_eval_results.json \
             --log build.log \
             --baseline-dir eval_results/ \
             --output accuracy_report.md
