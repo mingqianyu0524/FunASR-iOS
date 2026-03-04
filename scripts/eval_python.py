@@ -154,34 +154,39 @@ def run_sensevoice(model_dir: str, audio_files: list) -> dict:
     sess_options.intra_op_num_threads = 2
     session = ort.InferenceSession(model_path, sess_options=sess_options)
 
-    # Feature extraction: Kaldi-compatible 80-dim log-mel filterbank
-    # LFR: window=7, shift=6 (matches iOS SenseVoice engine)
+    # Feature extraction: use funasr WavFrontend (forward_fbank + forward_lfr_cmvn)
+    # Fall back to built-in implementation if unavailable.
+    frontend = None
     try:
+        import torch
         from funasr.frontends.wav_frontend import WavFrontend
         frontend = WavFrontend(cmvn_file=None, fs=16000, window="hamming",
                                n_mels=80, frame_length=25, frame_shift=10,
                                lfr_m=7, lfr_n=6)
-        use_funasr_frontend = True
     except Exception:
-        use_funasr_frontend = False
+        pass
 
     results = {}
     for audio_path in tqdm(audio_files, desc="SenseVoice inference", unit="utt"):
         try:
             pcm = load_wav_as_float(audio_path)
 
-            if use_funasr_frontend:
-                feats, feat_len = frontend.fbank_lfr_cmvn(pcm, fs=16000)
-                feats = feats[None]  # [1, T, 560]
+            if frontend is not None:
+                import torch
+                pcm_tensor = torch.from_numpy(pcm).unsqueeze(0)  # [1, T]
+                feat_len_tensor = torch.tensor([len(pcm)], dtype=torch.int32)
+                fbank, fbank_len = frontend.forward_fbank(pcm_tensor, feat_len_tensor)
+                feats, feat_len_t = frontend.forward_lfr_cmvn(fbank, fbank_len)
+                feats = feats.detach().numpy()  # [1, T_lfr, 560]
             else:
-                # Minimal fallback: compute log-mel + LFR without funasr
+                # Built-in fallback: compute log-mel + LFR without funasr
                 feats = _compute_fbank_lfr(pcm)
 
             feat_len_arr = np.array([feats.shape[1]], dtype=np.int32)
 
-            # SenseVoice model inputs: x, x_length, language, text_norm
-            language = np.array([[0]], dtype=np.int32)   # 0 = auto
-            text_norm = np.array([[14]], dtype=np.int32)  # 14 = withitn
+            # SenseVoice model inputs: x [N,T,560], x_length [N], language [N], text_norm [N]
+            language = np.array([0], dtype=np.int32)   # 0 = auto
+            text_norm = np.array([14], dtype=np.int32)  # 14 = withinutterance
 
             outputs = session.run(None, {
                 "x": feats.astype(np.float32),

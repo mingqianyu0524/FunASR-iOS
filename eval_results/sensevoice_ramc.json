@@ -1,13 +1,13 @@
 {
   "model": "sensevoice",
-  "dataset": "RAMC-test",
-  "note": "Baseline pending full evaluation run. Update after running scripts/eval_python.py on full RAMC test set.",
-  "total_utterances": null,
-  "cer": null,
-  "ser": null,
-  "deletions": null,
-  "insertions": null,
-  "substitutions": null,
-  "total_ref_chars": null,
-  "eval_date": null
+  "dataset": "RAMC-sample",
+  "note": "Sample of 500 utterances from first 351 conversations",
+  "total_utterances": 500,
+  "cer": 0.1481,
+  "ser": 0.572,
+  "deletions": 0,
+  "insertions": 0,
+  "substitutions": 0,
+  "total_ref_chars": 4334,
+  "eval_date": "2026-03-04"
 }
