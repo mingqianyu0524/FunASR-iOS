@@ -48,7 +48,15 @@ class ASRPipelineTests: XCTestCase {
     /// Requires EVAL_AUDIO_DIR env var pointing to ci_fixtures/ directory.
     /// Skipped automatically if the env var is not set.
     func testBatchEval() throws {
-        guard let evalAudioDir = ProcessInfo.processInfo.environment["EVAL_AUDIO_DIR"] else {
+        // Env var set via Xcode scheme (local dev).
+        // Fallback: file written by CI before xcodebuild — iOS Simulator maps host /tmp directly.
+        let evalAudioDir: String
+        if let v = ProcessInfo.processInfo.environment["EVAL_AUDIO_DIR"], !v.isEmpty {
+            evalAudioDir = v
+        } else if let v = try? String(contentsOfFile: "/tmp/funasr_eval_dir.txt", encoding: .utf8),
+                  !v.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            evalAudioDir = v.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
             throw XCTSkip("EVAL_AUDIO_DIR not set — skipping batch evaluation")
         }
 
