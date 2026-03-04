@@ -90,6 +90,30 @@ jobs:
           python3 -c "import json; t=[l.split()[0] for l in open('ci_models/paraformer_tokens.txt') if l.strip()]; open('FunASR-iOS/cpp_inference/models/paraformer_tokens.json','w').write(json.dumps(t,ensure_ascii=False)); print(f'Converted {len(t)} tokens to JSON')"
           ls -lh FunASR-iOS/cpp_inference/models/
 
+      # ── CI accuracy fixtures ──────────────────────────────────────
+      - name: Cache CI fixtures
+        id: cache-fixtures
+        uses: actions/cache@v4
+        with:
+          path: ci_fixtures/
+          key: ci-fixtures-${{ hashFiles('ci/fixture_versions.txt') }}
+
+      - name: Download CI fixtures
+        if: steps.cache-fixtures.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ci_fixtures
+          gh release download test-fixtures-v1.0 \
+            --repo ${{ github.repository }} \
+            --pattern "ramc_fixtures.tar.gz" \
+            --pattern "aishell1_fixtures.tar.gz" \
+            --dir ci_fixtures/
+          tar -xzf ci_fixtures/ramc_fixtures.tar.gz    -C ci_fixtures/
+          tar -xzf ci_fixtures/aishell1_fixtures.tar.gz -C ci_fixtures/
+          echo "Fixtures:"
+          find ci_fixtures/ -name "*.wav" | wc -l
+
       # ── Build + Test ──────────────────────────────────────────────
       - name: Build and run pipeline tests
         run: |
@@ -101,9 +125,20 @@ jobs:
             -skip-testing:FunASR-iOSUITests \
             -resultBundlePath TestResults.xcresult \
             MODEL_DIR=${{ github.workspace }}/FunASR-iOS/cpp_inference/models \
+            EVAL_AUDIO_DIR=${{ github.workspace }}/ci_fixtures \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             2>&1 | tee build.log
+
+      # ── Accuracy report ───────────────────────────────────────────
+      - name: Generate accuracy report
+        if: always()
+        run: |
+          python3 scripts/parse_test_results.py \
+            --log build.log \
+            --baseline-dir eval_results/ \
+            --output accuracy_report.md
+          cat accuracy_report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test results
         if: always()
@@ -113,3 +148,4 @@ jobs:
           path: |
             build.log
             TestResults.xcresult
+            accuracy_report.md
