@@ -36,3 +36,8 @@ export_fp16_without_emb.py
 
 # Allow test fixture WAV files
 !FunASR-iOSTests/fixtures/*.wav
+
+# Local datasets and generated fixtures (uploaded to GitHub Release)
+ci_fixtures/
+MDT2021S003/
+outputs/

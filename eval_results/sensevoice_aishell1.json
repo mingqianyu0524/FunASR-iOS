@@ -1,0 +1,13 @@
+{
+  "model": "sensevoice",
+  "dataset": "AISHELL1-test",
+  "total_utterances": 7176,
+  "matched_utterances": 7176,
+  "cer": 0.1397,
+  "ser": 0.9987,
+  "deletions": 3026,
+  "insertions": 8189,
+  "substitutions": 3418,
+  "total_ref_chars": 104765,
+  "eval_date": "2026-03-04"
+}

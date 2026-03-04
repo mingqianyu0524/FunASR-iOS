@@ -29,8 +29,8 @@
             std::string base_path([modelPath UTF8String]);
             engine = new SenseVoiceEngine();
 
-            std::string model_path = base_path + "/model.int8.onnx";
-            std::string tokens_path = base_path + "/tokens.txt";
+            std::string model_path = base_path + "/sensevoice.int8.onnx";
+            std::string tokens_path = base_path + "/sensevoice_tokens.txt";
 
             bool success = engine->initialize(model_path, tokens_path);
             if (success) {
