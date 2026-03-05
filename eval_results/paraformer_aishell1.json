@@ -1,13 +1,13 @@
 {
   "model": "paraformer",
   "dataset": "AISHELL1-test",
-  "note": "Baseline pending full evaluation run. Update after running scripts/eval_python.py on full AISHELL-1 test set.",
-  "total_utterances": null,
-  "cer": null,
-  "ser": null,
-  "deletions": null,
-  "insertions": null,
-  "substitutions": null,
-  "total_ref_chars": null,
-  "eval_date": null
+  "total_utterances": 7176,
+  "matched_utterances": 7176,
+  "cer": 0.0228,
+  "ser": 0.2237,
+  "deletions": 112,
+  "insertions": 46,
+  "substitutions": 2231,
+  "total_ref_chars": 104765,
+  "eval_date": "2026-03-05"
 }
