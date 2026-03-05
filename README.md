@@ -4,14 +4,14 @@ On-device Chinese ASR for iOS using SenseVoice and Paraformer INT8 ONNX models, 
 
 ## Accuracy Benchmarks
 
-Baselines measured with FunASR Python + ONNX INT8 models (2026-03-04).
+Baselines measured with FunASR Python + ONNX INT8 models (2026-03-05).
 
 | Model | Dataset | Utterances | CER | SER |
 |-------|---------|------------|-----|-----|
 | SenseVoice INT8 | AISHELL-1 test | 7,176 | **13.97%** | 99.87% |
 | SenseVoice INT8 | RAMC sample | 500 | **14.81%** | 57.2% |
-| Paraformer INT8 | AISHELL-1 test | — | pending | — |
-| Paraformer INT8 | RAMC test | — | pending | — |
+| Paraformer INT8 | AISHELL-1 test | 7,176 | **2.28%** | 22.4% |
+| Paraformer INT8 | RAMC sample | 25 | **7.83%** | 48.0% |
 
 - **AISHELL-1**: read speech, studio conditions (OpenSLR #33)
 - **RAMC**: conversational speech, varied acoustic conditions (MagicData-RAMC, OpenSLR #123)
@@ -61,7 +61,7 @@ Full setup instructions: [`FunASR-iOS/README.md`](FunASR-iOS/README.md#setup)
 GitHub Actions runs on every push to `main`. Each run:
 1. Downloads ONNX Runtime + model files (cached)
 2. Downloads CI fixture audio samples from `test-fixtures-v1.0` release (25 RAMC + 25 AISHELL-1)
-3. Builds and runs `testBatchEval()` on iOS Simulator
+3. Builds and runs `testBatchEval()` + `testParaformerBatchEval()` on iOS Simulator
 4. Generates accuracy report vs baselines in [`eval_results/`](eval_results/) and posts to Actions Step Summary
 
 ## Models
