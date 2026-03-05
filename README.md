@@ -2,6 +2,10 @@
 
 On-device Chinese ASR for iOS using SenseVoice and Paraformer INT8 ONNX models, accelerated via ONNX Runtime + CoreML (Apple Neural Engine).
 
+## Demo
+
+https://github.com/mingqianyu0524/FunASR-iOS/releases/download/demo-v1.0/sensevoice_demo.MOV
+
 ## Accuracy Benchmarks
 
 Baselines measured with FunASR Python + ONNX INT8 models (2026-03-05).
