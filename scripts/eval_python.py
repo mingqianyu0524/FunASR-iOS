@@ -250,11 +250,12 @@ def run_paraformer(model_dir: str, audio_files: list) -> dict:
     for audio_path in tqdm(audio_files, desc="Paraformer inference", unit="utt"):
         try:
             pcm = load_wav_as_float(audio_path)
-            feats = _compute_fbank(pcm)  # [T, 80]
+            feats = _compute_fbank(pcm)           # [T, 80]
+            feats = _apply_lfr(feats)              # [T_lfr, 560]  LFR: m=7, n=6
 
-            # Apply CMVN
+            # Apply CMVN (560-dim, applied after LFR stacking)
             feats = (feats - cmvn_mean) * cmvn_istd
-            feats = feats[None].astype(np.float32)  # [1, T, 80]
+            feats = feats[None].astype(np.float32)  # [1, T_lfr, 560]
             feat_len = np.array([feats.shape[1]], dtype=np.int32)
 
             # Encoder
@@ -271,8 +272,8 @@ def run_paraformer(model_dir: str, audio_files: list) -> dict:
             acoustic_embeds_len = np.array([token_count], dtype=np.int32)
 
             # Initialize caches as zeros (offline mode: no streaming cache needed)
-            cache_size = 512
-            caches_in = {f"in_cache_{i}": np.zeros((1, 1, cache_size), dtype=np.float32)
+            # Shape from model: [batch_size, 512, 10]
+            caches_in = {f"in_cache_{i}": np.zeros((1, 512, 10), dtype=np.float32)
                          for i in range(16)}
 
             dec_inputs = {
@@ -329,6 +330,28 @@ def _compute_fbank(pcm: np.ndarray, sr: int = 16000, n_mels: int = 80,
     return log_mel.astype(np.float32)
 
 
+def _apply_lfr(feats: np.ndarray, lfr_m: int = 7, lfr_n: int = 6) -> np.ndarray:
+    """Apply Low Frame Rate (LFR) stacking to fbank features.
+
+    Stacks lfr_m consecutive frames (centered) with stride lfr_n.
+    Input:  [T, D]
+    Output: [T_lfr, D*lfr_m]
+    """
+    T, D = feats.shape
+    out = []
+    # Pad left with lfr_m//2 copies of first frame
+    left_pad = lfr_m // 2
+    padded = np.concatenate([np.tile(feats[0], (left_pad, 1)), feats], axis=0)  # [T+left_pad, D]
+    for i in range(0, T, lfr_n):
+        start = i  # index into padded (already offset by left_pad)
+        chunk = padded[start:start + lfr_m]
+        if len(chunk) < lfr_m:
+            pad = np.tile(feats[-1], (lfr_m - len(chunk), 1))
+            chunk = np.concatenate([chunk, pad], axis=0)
+        out.append(chunk.flatten())
+    return np.stack(out).astype(np.float32)  # [T_lfr, D*lfr_m]
+
+
 def _compute_fbank_lfr(pcm: np.ndarray, sr: int = 16000, lfr_m: int = 7,
                        lfr_n: int = 6) -> np.ndarray:
     """Compute fbank + LFR for SenseVoice. Returns [1, T_lfr, 560]."""
@@ -377,26 +400,34 @@ def _mel_filterbank(sr: int, n_fft: int, n_mels: int) -> np.ndarray:
 
 
 def _load_mvn(mvn_path: str):
-    """Load CMVN stats from FunASR am.mvn file. Returns (mean, istd) as numpy arrays."""
-    means, vars_ = [], []
+    """Load CMVN stats from FunASR am.mvn file. Returns (mean, istd) as numpy arrays.
+
+    The .mvn file format used by online Paraformer:
+        <AddShift> 560 560
+        <LearnRateCoef> 0 [ v1 v2 ... v560 ]
+        <Rescale> 560 560
+        <LearnRateCoef> 0 [ v1 v2 ... v560 ]
+    where AddShift stores (-mean) and Rescale stores (1/std), both in 560-dim
+    space (i.e., applied AFTER LFR stacking of 7×80=560 fbank frames).
+    """
     with open(mvn_path, encoding="utf-8") as f:
         content = f.read()
 
-    # Parse addshift (mean negation) and rescale (1/std)
-    add_shift_match = re.search(r"<AddShift>(.*?)</AddShift>", content, re.DOTALL)
-    rescale_match = re.search(r"<Rescale>(.*?)</Rescale>", content, re.DOTALL)
+    # Extract values in [ ... ] blocks after <AddShift> and <Rescale>
+    add_shift_match = re.search(r"<AddShift>.*?\[\s*(.*?)\s*\]", content, re.DOTALL)
+    rescale_match = re.search(r"<Rescale>.*?\[\s*(.*?)\s*\]", content, re.DOTALL)
 
     if add_shift_match and rescale_match:
-        means = np.array([float(x) for x in add_shift_match.group(1).split()])
+        neg_means = np.array([float(x) for x in add_shift_match.group(1).split()])
         istds = np.array([float(x) for x in rescale_match.group(1).split()])
-        # FunASR convention: addshift = -mean, rescale = 1/std
-        cmvn_mean = -means
+        # AddShift = -mean → mean = -AddShift
+        cmvn_mean = -neg_means
         cmvn_istd = istds
     else:
         # Fallback: assume no CMVN
         print("Warning: Could not parse CMVN stats, using identity", file=sys.stderr)
-        cmvn_mean = np.zeros(80, dtype=np.float32)
-        cmvn_istd = np.ones(80, dtype=np.float32)
+        cmvn_mean = np.zeros(560, dtype=np.float32)
+        cmvn_istd = np.ones(560, dtype=np.float32)
 
     return cmvn_mean.astype(np.float32), cmvn_istd.astype(np.float32)
 
