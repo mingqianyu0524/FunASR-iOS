@@ -5,3 +5,4 @@
 
 #import "ASRBridgeResult.h"
 #import "SenseVoiceContext.h"
+#import "ParaformerContext.h"
