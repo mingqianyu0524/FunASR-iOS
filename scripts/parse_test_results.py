@@ -110,9 +110,11 @@ def parse_log(log_path: str) -> dict:
 # ── Baseline comparison ───────────────────────────────────────────────────────
 
 DATASET_TO_BASELINE = {
-    "RAMC":     "sensevoice_ramc.json",
-    "AISHELL-1": "sensevoice_aishell1.json",
-    "AISHELL1": "sensevoice_aishell1.json",
+    "RAMC":               "sensevoice_ramc.json",
+    "AISHELL-1":          "sensevoice_aishell1.json",
+    "AISHELL1":           "sensevoice_aishell1.json",
+    "RAMC [PARAFORMER]":  "paraformer_ramc.json",
+    "AISHELL-1 [PARAFORMER]": "paraformer_aishell1.json",
 }
 
 

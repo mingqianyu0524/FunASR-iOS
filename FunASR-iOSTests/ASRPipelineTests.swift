@@ -151,6 +151,119 @@ class ASRPipelineTests: XCTestCase {
         }
     }
 
+    // MARK: - Paraformer Batch Evaluation
+
+    /// Batch evaluation of Paraformer across RAMC and AISHELL-1 CI fixtures.
+    /// Requires EVAL_AUDIO_DIR env var (or /tmp/funasr_eval_dir.txt fallback).
+    /// Skipped automatically if neither is set.
+    func testParaformerBatchEval() throws {
+        let evalAudioDir: String
+        if let v = ProcessInfo.processInfo.environment["EVAL_AUDIO_DIR"], !v.isEmpty {
+            evalAudioDir = v
+        } else if let v = try? String(contentsOfFile: "/tmp/funasr_eval_dir.txt", encoding: .utf8),
+                  !v.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            evalAudioDir = v.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            throw XCTSkip("EVAL_AUDIO_DIR not set — skipping Paraformer batch evaluation")
+        }
+
+        guard let ctx = ParaformerContext(modelPath: modelDir) else {
+            XCTFail("Paraformer init failed, MODEL_DIR=\(modelDir)")
+            return
+        }
+
+        let subsets: [(name: String, subdir: String)] = [
+            ("RAMC [Paraformer]", "ramc"),
+            ("AISHELL-1 [Paraformer]", "aishell1"),
+        ]
+
+        var allResults: [[String: Any]] = []
+
+        for subset in subsets {
+            let subsetDir = URL(fileURLWithPath: evalAudioDir).appendingPathComponent(subset.subdir)
+            let wavFiles = (try? FileManager.default.contentsOfDirectory(
+                at: subsetDir, includingPropertiesForKeys: nil
+            ).filter { $0.pathExtension == "wav" }.sorted { $0.lastPathComponent < $1.lastPathComponent }) ?? []
+
+            guard !wavFiles.isEmpty else {
+                print("── Batch Eval: \(subset.name): no WAV files found in \(subsetDir.path), skipping")
+                continue
+            }
+
+            var totalRefChars = 0
+            var totalDist = 0
+            var totalDel = 0, totalIns = 0, totalSub = 0
+            var errorUtts = 0
+            var totalUtts = 0
+
+            for wavURL in wavFiles {
+                let stem = wavURL.deletingPathExtension().lastPathComponent
+                let txtURL = subsetDir.appendingPathComponent(stem + ".txt")
+                guard let ref = try? String(contentsOf: txtURL, encoding: .utf8)
+                    .trimmingCharacters(in: .whitespacesAndNewlines),
+                      !ref.isEmpty else { continue }
+
+                guard let pcmData = try? loadWAVFromURL(wavURL) else { continue }
+                guard let result = ctx.transcribeData(withMetrics: pcmData) else { continue }
+
+                // Paraformer does not use special tokens — no stripping needed
+                let hyp = result.text ?? ""
+                let details = CERHelper.cerWithDetails(hypothesis: hyp, reference: ref)
+                let refChars = ref.filter { !$0.isWhitespace }.count
+
+                totalRefChars += refChars
+                let dist = details.deletions + details.insertions + details.substitutions
+                totalDist += dist
+                totalDel += details.deletions
+                totalIns += details.insertions
+                totalSub += details.substitutions
+                if dist > 0 { errorUtts += 1 }
+                totalUtts += 1
+            }
+
+            guard totalUtts > 0, totalRefChars > 0 else {
+                print("── Batch Eval: \(subset.name): no matched utterances, skipping")
+                continue
+            }
+
+            let cer = Double(totalDist) / Double(totalRefChars)
+            let ser = Double(errorUtts) / Double(totalUtts)
+
+            print("""
+            ── Batch Eval: \(subset.name) (\(totalUtts) utterances) ──
+            CER:   \(String(format: "%.1f%%", cer * 100))   SER:  \(String(format: "%.1f%%", ser * 100))
+            D:  \(totalDel)  I:  \(totalIns)  S: \(totalSub)  Ref chars: \(totalRefChars)
+            """)
+
+            allResults.append([
+                "dataset": subset.name,
+                "utterances": totalUtts,
+                "cer": cer,
+                "ser": ser,
+                "deletions": totalDel,
+                "insertions": totalIns,
+                "substitutions": totalSub,
+                "ref_chars": totalRefChars,
+            ])
+
+            XCTAssertLessThan(cer, 0.30, "\(subset.name) CER \(String(format:"%.1f%%",cer*100)) exceeds 30% threshold")
+        }
+
+        // Append Paraformer results to the same batch_eval_results.json
+        if !allResults.isEmpty {
+            let outURL = URL(fileURLWithPath: evalAudioDir).appendingPathComponent("batch_eval_results.json")
+            var combined: [[String: Any]] = []
+            if let existing = try? Data(contentsOf: outURL),
+               let decoded = try? JSONSerialization.jsonObject(with: existing) as? [[String: Any]] {
+                combined = decoded
+            }
+            combined.append(contentsOf: allResults)
+            if let data = try? JSONSerialization.data(withJSONObject: combined, options: .prettyPrinted) {
+                try? data.write(to: outURL)
+            }
+        }
+    }
+
     // MARK: - SNR Robustness (optional)
 
     /// Add Gaussian white noise at a given SNR (dB) to a float PCM array.
