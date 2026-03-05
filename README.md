@@ -9,21 +9,26 @@ iOS speech recognition app powered by [FunASR](https://github.com/modelscope/Fun
 | Model | Status | Description |
 |-------|--------|-------------|
 | **SenseVoice** | ✅ Active | Non-autoregressive encoder-only, CTC decoding, multilingual |
-| **Paraformer** | 🔧 Planned | Non-autoregressive CIF + parallel decoder, native streaming |
+| **Paraformer** | ✅ Active | Non-autoregressive CIF + parallel decoder, native streaming |
 | Whisper | Legacy | Autoregressive encoder-decoder |
 
 All models run as INT8-quantized ONNX graphs. Model files are distributed via [GitHub Release `models-v1.0`](https://github.com/mingqianyu0524/FunASR-iOS/releases/tag/models-v1.0).
 
-## Accuracy (SenseVoice INT8)
+## Accuracy Benchmarks
 
-Evaluated with `scripts/eval_python.py` using FunASR Python + ONNX Runtime on CPU.
+Evaluated with `scripts/eval_python.py` using FunASR Python + ONNX Runtime on CPU (2026-03-05).
 
-| Dataset | Utterances | CER | SER |
-|---------|-----------|-----|-----|
-| AISHELL-1 test | 7,176 | **13.97%** | 99.87% |
-| MagicData-RAMC (sample) | 500 | **14.81%** | 57.2% |
+| Model | Dataset | Utterances | CER | SER |
+|-------|---------|------------|-----|-----|
+| SenseVoice INT8 | AISHELL-1 test | 7,176 | **13.97%** | 99.87% |
+| SenseVoice INT8 | RAMC sample | 500 | **14.81%** | 57.2% |
+| Paraformer INT8 | AISHELL-1 test | 7,176 | **2.28%** | 22.4% |
+| Paraformer INT8 | RAMC sample | 25 | **7.83%** | 48.0% |
 
-CI runs `testBatchEval()` on 25+25 fixture utterances and reports delta vs these baselines in the [GitHub Actions step summary](https://github.com/mingqianyu0524/FunASR-iOS/actions).
+- **AISHELL-1**: read speech, studio conditions (OpenSLR #33)
+- **RAMC**: conversational speech, varied acoustic conditions (MagicData-RAMC, OpenSLR #123)
+
+CI runs `testBatchEval()` + `testParaformerBatchEval()` on 25+25 fixture utterances and reports delta vs these baselines in the [GitHub Actions step summary](https://github.com/mingqianyu0524/FunASR-iOS/actions). Full baseline JSONs in [`eval_results/`](eval_results/).
 
 ## Architecture
 
