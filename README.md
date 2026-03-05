@@ -16,7 +16,7 @@ All models run as INT8-quantized ONNX graphs. Model files are distributed via [G
 
 ## Demo
 
-https://github.com/mingqianyu0524/FunASR-iOS/releases/download/demo-v1.0/sensevoice_demo.MOV
+![SenseVoice on-device ASR demo](https://github.com/mingqianyu0524/FunASR-iOS/releases/download/demo-v1.0/sensevoice_demo.gif)
 
 ## Accuracy Benchmarks
 
