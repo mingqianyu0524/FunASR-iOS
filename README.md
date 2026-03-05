@@ -4,7 +4,7 @@ On-device Chinese ASR for iOS using SenseVoice and Paraformer INT8 ONNX models, 
 
 ## Demo
 
-https://github.com/mingqianyu0524/FunASR-iOS/releases/download/demo-v1.0/sensevoice_demo.MOV
+![SenseVoice on-device ASR demo](https://github.com/mingqianyu0524/FunASR-iOS/releases/download/demo-v1.0/sensevoice_demo.gif)
 
 ## Accuracy Benchmarks
 
