@@ -48,7 +48,15 @@ class ASRPipelineTests: XCTestCase {
     /// Requires EVAL_AUDIO_DIR env var pointing to ci_fixtures/ directory.
     /// Skipped automatically if the env var is not set.
     func testBatchEval() throws {
-        guard let evalAudioDir = ProcessInfo.processInfo.environment["EVAL_AUDIO_DIR"] else {
+        // Env var set via Xcode scheme (local dev).
+        // Fallback: file written by CI before xcodebuild — iOS Simulator maps host /tmp directly.
+        let evalAudioDir: String
+        if let v = ProcessInfo.processInfo.environment["EVAL_AUDIO_DIR"], !v.isEmpty {
+            evalAudioDir = v
+        } else if let v = try? String(contentsOfFile: "/tmp/funasr_eval_dir.txt", encoding: .utf8),
+                  !v.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            evalAudioDir = v.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
             throw XCTSkip("EVAL_AUDIO_DIR not set — skipping batch evaluation")
         }
 
@@ -61,6 +69,9 @@ class ASRPipelineTests: XCTestCase {
             ("RAMC", "ramc"),
             ("AISHELL-1", "aishell1"),
         ]
+
+        // Collect all subset results for JSON output
+        var allResults: [[String: Any]] = []
 
         for subset in subsets {
             let subsetDir = URL(fileURLWithPath: evalAudioDir).appendingPathComponent(subset.subdir)
@@ -111,15 +122,32 @@ class ASRPipelineTests: XCTestCase {
             let cer = Double(totalDist) / Double(totalRefChars)
             let ser = Double(errorUtts) / Double(totalUtts)
 
-            // Print in a format that parse_test_results.py can extract
             print("""
             ── Batch Eval: \(subset.name) (\(totalUtts) utterances) ──
             CER:   \(String(format: "%.1f%%", cer * 100))   SER:  \(String(format: "%.1f%%", ser * 100))
             D:  \(totalDel)  I:  \(totalIns)  S: \(totalSub)  Ref chars: \(totalRefChars)
             """)
 
+            allResults.append([
+                "dataset": subset.name,
+                "utterances": totalUtts,
+                "cer": cer,
+                "ser": ser,
+                "deletions": totalDel,
+                "insertions": totalIns,
+                "substitutions": totalSub,
+                "ref_chars": totalRefChars,
+            ])
+
             // Loose regression guard: CER < 30% for both datasets
             XCTAssertLessThan(cer, 0.30, "\(subset.name) CER \(String(format:"%.1f%%",cer*100)) exceeds 30% threshold")
+        }
+
+        // Write results JSON to EVAL_AUDIO_DIR for parse_test_results.py
+        if !allResults.isEmpty,
+           let data = try? JSONSerialization.data(withJSONObject: allResults, options: .prettyPrinted) {
+            let outURL = URL(fileURLWithPath: evalAudioDir).appendingPathComponent("batch_eval_results.json")
+            try? data.write(to: outURL)
         }
     }
 

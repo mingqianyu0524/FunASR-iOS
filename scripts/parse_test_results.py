@@ -6,6 +6,13 @@ Extracts CER/SER numbers from testBatchEval() output, compares to baseline JSONs
 and writes a Markdown summary table to stdout / $GITHUB_STEP_SUMMARY.
 
 Usage:
+    # Primary: read JSON written by testBatchEval()
+    python3 scripts/parse_test_results.py \
+        --results-json ci_fixtures/batch_eval_results.json \
+        --baseline-dir eval_results/ \
+        --output accuracy_report.md
+
+    # Legacy: parse xcodebuild build.log (only works if print() goes to stdout)
     python3 scripts/parse_test_results.py \
         --log build.log \
         --baseline-dir eval_results/ \
@@ -38,6 +45,25 @@ CER_SINGLE_PATTERN = re.compile(
     r"CER:\s+([\d.]+)%.*RTF:\s+([\d.]+)",
     re.MULTILINE,
 )
+
+
+def parse_results_json(json_path: str) -> dict:
+    """Read batch eval results written by testBatchEval() to EVAL_AUDIO_DIR."""
+    with open(json_path, encoding="utf-8") as f:
+        entries = json.load(f)
+    results = {"batch_evals": [], "single_tests": [], "snr_curve": []}
+    for entry in entries:
+        results["batch_evals"].append({
+            "dataset":       entry["dataset"],
+            "utterances":    int(entry["utterances"]),
+            "cer":           float(entry["cer"]),
+            "ser":           float(entry["ser"]),
+            "deletions":     int(entry["deletions"]),
+            "insertions":    int(entry["insertions"]),
+            "substitutions": int(entry["substitutions"]),
+            "ref_chars":     int(entry["ref_chars"]),
+        })
+    return results
 
 
 def parse_log(log_path: str) -> dict:
@@ -171,7 +197,9 @@ def generate_report(parsed: dict, baseline_dir: str | None) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate CI accuracy report from build log")
-    parser.add_argument("--log", required=True, help="xcodebuild build.log path")
+    parser.add_argument("--log", default=None, help="xcodebuild build.log path (legacy)")
+    parser.add_argument("--results-json", default=None,
+                        help="JSON file written by testBatchEval() (preferred over --log)")
     parser.add_argument("--baseline-dir", default=None,
                         help="Directory containing baseline JSON files")
     parser.add_argument("--output", required=True, help="Output Markdown file path")
@@ -179,11 +207,16 @@ def main():
                         help="Exit non-zero if CER regresses > 5pp vs baseline")
     args = parser.parse_args()
 
-    if not os.path.exists(args.log):
-        print(f"ERROR: Log file not found: {args.log}", file=sys.stderr)
+    if args.results_json and os.path.exists(args.results_json):
+        parsed = parse_results_json(args.results_json)
+    elif args.log:
+        if not os.path.exists(args.log):
+            print(f"ERROR: Log file not found: {args.log}", file=sys.stderr)
+            sys.exit(1)
+        parsed = parse_log(args.log)
+    else:
+        print("ERROR: provide --results-json or --log", file=sys.stderr)
         sys.exit(1)
-
-    parsed = parse_log(args.log)
     report = generate_report(parsed, args.baseline_dir)
 
     with open(args.output, "w", encoding="utf-8") as f:

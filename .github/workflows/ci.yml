@@ -114,6 +114,12 @@ jobs:
           echo "Fixtures:"
           find ci_fixtures/ -name "*.wav" | wc -l
 
+      # Write fixtures path to /tmp so the simulator app can read it at runtime.
+      # iOS Simulator maps the host /tmp directly; scheme $(VAR) expansion from
+      # xcodebuild command-line build settings is unreliable in CLI mode.
+      - name: Write eval_audio_dir for simulator
+        run: echo -n "${{ github.workspace }}/ci_fixtures" > /tmp/funasr_eval_dir.txt
+
       # ── Build + Test ──────────────────────────────────────────────
       - name: Build and run pipeline tests
         run: |
@@ -135,6 +141,7 @@ jobs:
         if: always()
         run: |
           python3 scripts/parse_test_results.py \
+            --results-json ci_fixtures/batch_eval_results.json \
             --log build.log \
             --baseline-dir eval_results/ \
             --output accuracy_report.md
