@@ -14,6 +14,10 @@ iOS speech recognition app powered by [FunASR](https://github.com/modelscope/Fun
 
 All models run as INT8-quantized ONNX graphs. Model files are distributed via [GitHub Release `models-v1.0`](https://github.com/mingqianyu0524/FunASR-iOS/releases/tag/models-v1.0).
 
+## Demo
+
+https://github.com/mingqianyu0524/FunASR-iOS/releases/download/demo-v1.0/sensevoice_demo.MOV
+
 ## Accuracy Benchmarks
 
 Evaluated with `scripts/eval_python.py` using FunASR Python + ONNX Runtime on CPU (2026-03-05).
