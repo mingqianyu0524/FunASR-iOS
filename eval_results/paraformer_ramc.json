@@ -1,13 +1,14 @@
 {
   "model": "paraformer",
-  "dataset": "RAMC-test",
-  "note": "Baseline pending full evaluation run. Update after running scripts/eval_python.py on full RAMC test set.",
-  "total_utterances": null,
-  "cer": null,
-  "ser": null,
-  "deletions": null,
-  "insertions": null,
-  "substitutions": null,
-  "total_ref_chars": null,
-  "eval_date": null
+  "dataset": "RAMC-sample",
+  "note": "Sample of 25 CI fixture utterances",
+  "total_utterances": 25,
+  "matched_utterances": 25,
+  "cer": 0.0783,
+  "ser": 0.48,
+  "deletions": 5,
+  "insertions": 2,
+  "substitutions": 24,
+  "total_ref_chars": 396,
+  "eval_date": "2026-03-05"
 }

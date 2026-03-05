@@ -20,6 +20,7 @@
 | 3 | 抽取 CI 样本 | RAMC 25 条 + AISHELL-1 25 条，打包上传 GitHub Release |
 | 4 | 更新 CI workflow | 新增 fixture 下载、EVAL_AUDIO_DIR 传参、批量测试、SNR 鲁棒曲线 |
 | 5 | 更新 Swift 测试代码 | testBatchEval()、CERHelper D/I/S 分解、PR 精度对比输出 |
+| 6 | Paraformer 精度评测补全 | Python eval + Swift CI 测试 + 报告解析，覆盖 Paraformer int8 |
 
 ### ❌ 本期不做（依赖真机或暂无评测结果）
 
@@ -350,6 +351,113 @@ D:  102  I:  41  S: 118  Ref chars: 3251
 
 ---
 
+## 任务 6 — Paraformer 精度评测补全
+
+> **背景**：任务 1-5 完成了 SenseVoice 的完整评测链路，但 Paraformer 的覆盖存在以下缺口：
+> - `eval_results/paraformer_*.json` 已有占位文件，但字段全为 `null`
+> - `testBatchEval()` 仅用 `SenseVoiceContext` 推理，没有跑 Paraformer
+> - `parse_test_results.py` 的 baseline 映射只指向 SenseVoice 文件
+>
+> **好消息**：`eval_python.py` 已完整实现 `run_paraformer()`（含 CIF 解码、CMVN），无需修改。
+
+### 6.1 Python 评测——生成 Paraformer baseline
+
+前置条件：任务 1 数据集已下载解压，任务 2.1/2.2 依赖与模型已就绪。
+
+```bash
+# Paraformer on RAMC test set
+python3 scripts/eval_python.py \
+  --model paraformer \
+  --model-dir ~/asr_models \
+  --audio-dir /dev/shm/datasets/MagicData-RAMC/test \
+  --transcript /dev/shm/datasets/MagicData-RAMC/UTTERANCEINFO.txt \
+  --output eval_results/paraformer_ramc.json
+
+# Paraformer on AISHELL-1 test set
+python3 scripts/eval_python.py \
+  --model paraformer \
+  --model-dir ~/asr_models \
+  --audio-dir /dev/shm/datasets/data_aishell/wav/test \
+  --transcript /dev/shm/datasets/data_aishell/transcript/aishell_transcript_v0.8.txt \
+  --output eval_results/paraformer_aishell1.json
+```
+
+运行完毕后将两个 JSON 文件提交进仓库，覆盖现有占位文件。预期格式：
+
+```json
+{
+  "model": "paraformer",
+  "dataset": "RAMC-test",
+  "total_utterances": 2000,
+  "cer": 0.135,
+  "ser": 0.512,
+  "deletions": 1100,
+  "insertions": 430,
+  "substitutions": 870,
+  "total_ref_chars": 25000,
+  "eval_date": "2026-03-XX"
+}
+```
+
+> ⚠️ 在真实服务器执行前，`paraformer_*.json` 保持占位状态（所有字段 `null`）。
+> CI 报告的 baseline 列将显示 N/A，待真实数字填入后自动启用 delta 对比。
+
+### 6.2 Swift CI 测试——新增 testParaformerBatchEval()
+
+在 `FunASR-iOSTests/ASRPipelineTests.swift` 中新增测试方法，结构与 `testBatchEval()` 相同，差异点如下：
+
+| 项目 | testBatchEval() (SenseVoice) | testParaformerBatchEval() |
+|------|------------------------------|---------------------------|
+| 推理上下文 | `SenseVoiceContext(modelPath:)` | `ParaformerContext(modelPath:)` |
+| 特殊 token 过滤 | 需要（`<\|zh\|>` 等） | 不需要（Paraformer 直接输出汉字） |
+| 输出 dataset 名称 | `"RAMC"`、`"AISHELL-1"` | `"RAMC [Paraformer]"`、`"AISHELL-1 [Paraformer]"` |
+| CER 断言阈值 | < 30% | < 30% |
+
+输出格式（供 `parse_test_results.py` 正则提取）：
+
+```
+── Batch Eval: RAMC [Paraformer] (25 utterances) ──
+CER:   15.2%   SER:  52.0%
+D:  210  I:  55  S: 170  Ref chars: 4012
+── Batch Eval: AISHELL-1 [Paraformer] (25 utterances) ──
+CER:   11.8%   SER:  40.0%
+D:  130  I:  38  S:  98  Ref chars: 3251
+```
+
+`ParaformerContext` 接口与 `SenseVoiceContext` 相同（均实现 `transcribeData(withMetrics:)`），
+CI 已下载全部 Paraformer 模型文件（`paraformer_enc.int8.onnx`、`paraformer_dec.int8.onnx`、
+`paraformer_am.mvn`、`paraformer_tokens.txt`），无需修改 workflow。
+
+### 6.3 CI 报告——扩展 parse_test_results.py baseline 映射
+
+在 `scripts/parse_test_results.py` 的 `DATASET_TO_BASELINE` 字典追加 Paraformer 条目：
+
+```python
+# 现有（SenseVoice）
+"RAMC":      "sensevoice_ramc.json",
+"AISHELL-1": "sensevoice_aishell1.json",
+"AISHELL1":  "sensevoice_aishell1.json",
+
+# 新增（Paraformer）
+"RAMC [PARAFORMER]":      "paraformer_ramc.json",
+"AISHELL-1 [PARAFORMER]": "paraformer_aishell1.json",
+"AISHELL1 [PARAFORMER]":  "paraformer_aishell1.json",
+```
+
+匹配逻辑已是 `key.upper() in dataset.upper()`，追加后可自动路由，无需其他改动。
+CI Summary 表格将出现独立的 Paraformer 行，baseline 列待 6.1 步完成后填入真实 delta。
+
+### 6.4 文件变更一览（任务 6 新增）
+
+| 文件 | 操作 | 说明 |
+|------|------|------|
+| `eval_results/paraformer_ramc.json` | 修改 | 用真实 CER/SER 覆盖占位 null 值（需在服务器执行 6.1） |
+| `eval_results/paraformer_aishell1.json` | 修改 | 同上 |
+| `FunASR-iOSTests/ASRPipelineTests.swift` | 修改 | 新增 `testParaformerBatchEval()` |
+| `scripts/parse_test_results.py` | 修改 | 扩展 `DATASET_TO_BASELINE`，支持 Paraformer 行 |
+
+---
+
 ## 文件变更清单
 
 | 文件 | 操作 | 说明 |
@@ -372,8 +480,15 @@ D:  102  I:  41  S: 118  Ref chars: 3251
 
 ## 验收标准
 
+### 任务 1-5（SenseVoice 评测基础设施）
 1. `scripts/eval_python.py` 在 RAMC test set 上能输出 SenseVoice 和 Paraformer 的 CER/SER
 2. `eval_results/` 下有 4 个 baseline JSON 文件已提交
 3. GitHub Release `test-fixtures-v1.0` 存在，包含两个 tar.gz，合计 < 30MB
 4. CI 运行（GitHub Actions）能正确下载 fixtures，`testBatchEval` 通过
 5. CI Summary 页面有精度对比表（与 baseline 的 delta）
+
+### 任务 6（Paraformer 评测补全）
+6. `eval_results/paraformer_ramc.json` 和 `paraformer_aishell1.json` 中的 `cer` 字段为有效浮点数（非 null）
+7. CI 运行时 `testParaformerBatchEval` 出现在测试输出中，且两组 CER < 30%
+8. CI Summary 表格中出现 `RAMC [Paraformer]` 和 `AISHELL-1 [Paraformer]` 两行
+9. `parse_test_results.py` 能将 Paraformer 行与 `paraformer_*.json` baseline 做 delta 对比
